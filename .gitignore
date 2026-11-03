@@ -1,0 +1,17 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Segredos e configurações locais
+.env
+*.ovpn
+*.key
+
+# Material da disciplina (não é nosso para redistribuir)
+AF - Tecnologias Hackers 26-2.pdf
+
+# Sistema
+.DS_Store
+Thumbs.db
