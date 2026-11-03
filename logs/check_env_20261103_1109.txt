@@ -1,0 +1,24 @@
+== Verificação do ambiente — 2026-11-03T11:09:56-03:00 — discorder
+-- Ferramentas
+  [OK]    docker: Docker version 29.1.3, build 29.1.3-0ubuntu3~24.04.2
+  [OK]    nmap: Nmap version 7.94SVN ( https://nmap.org )
+  [OK]    curl: curl 8.5.0 (x86_64-pc-linux-gnu) libcurl/8.5.0 OpenSSL/3.0.13 zlib/1.3 brotli/1.1.0 zstd/1.5.5 libidn2/2.3.7 libpsl/0.21.2 (+libidn2/2.3.7) libssh/0.10.6/openssl/zlib nghttp2/1.59.0 librtmp/2.3 OpenLDAP/2.6.10
+  [OK]    jq: jq-1.7
+  [OK]    python3: Python 3.12.3
+  [OK]    tmux: tmux 3.4
+  [OK]    git: git version 2.43.0
+  [OK]    Docker Compose version 2.40.3+ds1-0ubuntu1~24.04.1
+-- Juice Shop
+  [OK]    responde em http://127.0.0.1:3000 (versão 20.3.0)
+-- Ollama
+  [OK]    responde em http://127.0.0.1:11434 (versão 0.40.14)
+  [OK]    modelo qwen3:4b instalado (digest 359d7dd4bcda)
+-- Isolamento (portas 3000 e 11434 só em 127.0.0.1)
+  [OK]    porta 3000 só em localhost: 127.0.0.1:3000
+  [OK]    porta 11434 só em localhost: 127.0.0.1:11434
+-- Recursos
+               total        used        free      shared  buff/cache   available
+Mem:            15Gi       4.2Gi       1.2Gi        14Mi        10Gi        11Gi
+  núcleos: 20
+
+== TUDO OK
