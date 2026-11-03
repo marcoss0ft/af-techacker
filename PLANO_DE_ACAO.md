@@ -46,7 +46,7 @@
 - Vocês já sabem chegar ao servidor (VPN + SSH do Roteiro 1).
 - **O que se perde:** os testes saem de dentro do próprio servidor, e não de uma máquina atacante separada. Isso entra como limitação no relatório (1 frase).
 
-**E o Kali?** O enunciado só diz que o Juice Shop deve ser "acessível a partir do Kali" e que ferramentas do Kali "**poderão**" ser usadas. Ele não exige que o agente rode no Kali. No caminho A, qualquer máquina do grupo acessa o Juice Shop por **túnel SSH** (ver 1.2), inclusive um Kali, se houver. → **Confirmar com o professor por escrito** (Fase 0).
+**E o Kali?** O enunciado só diz que o Juice Shop deve ser "acessível a partir do Kali" e que ferramentas do Kali "**poderão**" ser usadas. Ele não exige que o agente rode no Kali. No caminho A, qualquer máquina do grupo acessa o Juice Shop por **túnel SSH** (ver 1.2), inclusive um Kali, se houver. ✅ **Caminho A confirmado pelo professor em 03/11/2026.**
 
 **De onde dá para trabalhar:** a VPN conecta em 192.168.20.27, que só existe dentro da rede do Insper. Funciona na rede da sala e na WannaCry (como no Roteiro 1); **de casa, não**. Testar cedo: na WannaCry fora da sala, ligar a VPN e rodar `ping 10.0.80.3`.
 
@@ -55,7 +55,7 @@
 ## Fase 0 — Organização (antes de tudo)
 
 - [ ] **Perguntar ao professor, por escrito:**
-  1. "Podemos rodar o agente direto no servidor do kit, sem Kali, acessando o Juice Shop por túnel SSH?"
+  1. ✅ "Podemos rodar o agente direto no servidor do kit, sem Kali, acessando o Juice Shop por túnel SSH?" Confirmado em 03/11/2026.
   2. "Podemos usar IAs externas (ChatGPT, Claude) no código e nos documentos? Se sim, como declarar?"
 - [ ] **Ver se o servidor aguenta a IA.** No `discorder`: `free -h; nproc`. O Qwen3 4B quantizado ocupa uns 3–4 GB de RAM além do que o Apache e o MariaDB já usam. Anotar o resultado aqui: `RAM total: ___  RAM livre: ___  núcleos: ___`.
 - [ ] **Repositório git privado** (GitHub privado). Vocês editam no notebook e fazem `git pull` no servidor.

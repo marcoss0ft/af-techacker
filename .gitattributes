@@ -1,0 +1,5 @@
+# Scripts rodam no Ubuntu: forçar fim de linha LF mesmo editando no Windows.
+*.sh text eol=lf
+*.py text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf

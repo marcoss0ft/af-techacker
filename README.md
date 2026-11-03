@@ -20,12 +20,34 @@ Tudo roda no servidor do kit (`discorder`, Ubuntu 24.04, 10.0.80.3), atrás do p
 ### 1. Acesso ao servidor
 1. Conectar a VPN do pfSense (só funciona na rede do Insper).
 2. `ssh discorder_adm@10.0.80.3`
+3. Trabalhar sempre dentro do `tmux` (`tmux new -s af`; para voltar depois de uma queda: `tmux attach -t af`).
 
 ### 2. Instalação no servidor
-_A preencher (Fase 1)._
+```bash
+sudo apt update
+sudo apt install -y docker.io docker-compose-v2 git jq nmap tmux curl python3-venv
+sudo usermod -aG docker "$USER"   # sair e entrar de novo no SSH para valer
+```
+
+Acesso do servidor ao repositório privado (deploy key com escrita, para enviar os logs):
+```bash
+ssh-keygen -t ed25519 -C "discorder-af" -f ~/.ssh/af_deploy -N ""
+cat ~/.ssh/af_deploy.pub   # colar em GitHub > Settings > Deploy keys, marcando "Allow write access"
+GIT_SSH_COMMAND="ssh -i ~/.ssh/af_deploy" git clone git@github.com:marcoss0ft/af-techacker.git ~/af-techacker
+cd ~/af-techacker && git config core.sshCommand "ssh -i ~/.ssh/af_deploy"
+```
 
 ### 3. Juice Shop
-_A preencher (Fase 1)._
+```bash
+cd ~/af-techacker/lab
+docker compose up -d
+./restore.sh          # recria o container e confirma o estado inicial
+```
+O Juice Shop escuta só em `127.0.0.1:3000`. Para abrir no navegador de outra máquina do grupo:
+```bash
+ssh -L 3000:127.0.0.1:3000 discorder_adm@10.0.80.3
+```
+e acessar `http://localhost:3000`.
 
 ### 4. Ollama e modelo
 _A preencher (Fase 1)._
@@ -34,13 +56,22 @@ _A preencher (Fase 1)._
 _A preencher (Fase 2)._
 
 ### 6. Restauração do Juice Shop
-_A preencher (Fase 1)._
+```bash
+~/af-techacker/lab/restore.sh
+```
+Recria o container (o banco do Juice Shop vive dentro dele), espera a aplicação responder e confirma que **0 desafios** estão resolvidos. Cada execução fica registrada em `logs/restores.log`. Rodar antes de cada investigação.
+
+### 7. Verificação do ambiente
+```bash
+~/af-techacker/lab/check_env.sh | tee ~/af-techacker/logs/check_env_$(date +%Y%m%d_%H%M).txt
+```
+Confere ferramentas, Juice Shop, Ollama, modelo instalado e se as portas 3000 e 11434 escutam só em `127.0.0.1`.
 
 ## Versões registradas
 
 | Item | Valor |
 |---|---|
-| Juice Shop (tag da imagem) | _a preencher_ |
+| Juice Shop (tag da imagem) | `bkimminich/juice-shop:v20.3.0` |
 | Ollama | _a preencher_ |
 | Modelo / digest | _a preencher_ |
 | Quantização | _a preencher_ |

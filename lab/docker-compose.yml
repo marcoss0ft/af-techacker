@@ -1,0 +1,15 @@
+# OWASP Juice Shop: alvo dos testes da AF.
+# Escuta só em 127.0.0.1, então não fica acessível pela rede (nem VPN, nem WAN).
+# Para abrir no navegador do notebook: ssh -L 3000:127.0.0.1:3000 discorder_adm@10.0.80.3
+services:
+  juice-shop:
+    image: bkimminich/juice-shop:v20.3.0   # tag fixa: reprodução exata
+    container_name: juice-shop
+    ports:
+      - "127.0.0.1:3000:3000"
+    restart: unless-stopped
+    mem_limit: 1g                          # divide o servidor com Ollama, Apache e MariaDB
+    security_opt:
+      - no-new-privileges:true
+    # Sem volumes do host, sem network_mode: host, sem privileged:
+    # um comprometimento do Juice Shop não alcança o resto do servidor.
