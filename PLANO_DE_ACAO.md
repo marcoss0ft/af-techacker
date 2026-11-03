@@ -57,7 +57,7 @@
 - [ ] **Perguntar ao professor, por escrito:**
   1. ✅ "Podemos rodar o agente direto no servidor do kit, sem Kali, acessando o Juice Shop por túnel SSH?" Confirmado em 03/11/2026.
   2. "Podemos usar IAs externas (ChatGPT, Claude) no código e nos documentos? Se sim, como declarar?"
-- [ ] **Ver se o servidor aguenta a IA.** No `discorder`: `free -h; nproc`. O Qwen3 4B quantizado ocupa uns 3–4 GB de RAM além do que o Apache e o MariaDB já usam. Anotar o resultado aqui: `RAM total: ___  RAM livre: ___  núcleos: ___`.
+- [x] **Ver se o servidor aguenta a IA.** Medido em 03/11/2026: **RAM total 15 GiB, disponível 14 GiB, 20 núcleos, 84 GB livres em disco**. Folga ampla para o Qwen3 4B (3–4 GB) junto com Apache, MariaDB e Juice Shop. Topologia A confirmada; a B não é necessária.
 - [ ] **Repositório git privado** (GitHub privado). Vocês editam no notebook e fazem `git pull` no servidor.
   ```
   ├── README.md                    # como subir tudo no kit, passo a passo

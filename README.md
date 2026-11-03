@@ -27,6 +27,7 @@ Tudo roda no servidor do kit (`discorder`, Ubuntu 24.04, 10.0.80.3), atrás do p
 sudo apt update
 sudo apt install -y docker.io docker-compose-v2 git jq nmap tmux curl python3-venv
 sudo usermod -aG docker "$USER"   # sair e entrar de novo no SSH para valer
+sudo timedatectl set-timezone America/Sao_Paulo   # logs com horário de Brasília (-03:00)
 ```
 
 Acesso do servidor ao repositório privado (deploy key com escrita, para enviar os logs):
@@ -50,7 +51,14 @@ ssh -L 3000:127.0.0.1:3000 discorder_adm@10.0.80.3
 e acessar `http://localhost:3000`.
 
 ### 4. Ollama e modelo
-_A preencher (Fase 1)._
+```bash
+curl -fsSL https://ollama.com/install.sh | sh   # instalador oficial; cria o serviço systemd
+ollama pull qwen3:4b
+ollama run qwen3:4b --verbose "Explique em uma frase o que é o OWASP Juice Shop."
+```
+O Ollama escuta por padrão só em `127.0.0.1:11434`. **Não** alterar `OLLAMA_HOST`: ele não tem autenticação e não deve ficar acessível pela rede.
+
+Servidor medido em 03/11/2026: 15 GiB de RAM (14 GiB disponíveis), 20 núcleos, sem GPU dedicada; o modelo roda na CPU.
 
 ### 5. Agente
 _A preencher (Fase 2)._
@@ -72,7 +80,8 @@ Confere ferramentas, Juice Shop, Ollama, modelo instalado e se as portas 3000 e 
 | Item | Valor |
 |---|---|
 | Juice Shop (tag da imagem) | `bkimminich/juice-shop:v20.3.0` |
-| Ollama | _a preencher_ |
-| Modelo / digest | _a preencher_ |
-| Quantização | _a preencher_ |
-| `num_ctx` / `temperature` / `seed` / thinking | _a preencher_ |
+| Ollama | 0.40.14 |
+| Modelo / digest | `qwen3:4b` / `359d7dd4bcda` |
+| Quantização | _a preencher (`ollama show qwen3:4b`)_ |
+| `num_ctx` / `temperature` / `seed` / thinking | _a definir na Fase 2_ |
+| Desempenho medido (CPU, 03/11/2026) | 17 tokens/s de geração, 65 tokens/s de leitura do prompt. Com thinking ligado, uma resposta de uma frase gerou 1265 tokens e levou 1min16s |
