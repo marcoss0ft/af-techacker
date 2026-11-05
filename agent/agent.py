@@ -226,12 +226,14 @@ def main() -> None:
         print("  Resultado (início):")
         print(textwrap.indent(resumir(res.saida, 1200), "    "))
 
-        decisao_pos = input("\n  O que o grupo conclui deste resultado? (vai para o log) > ").strip()
+        # Decisão do grupo após ver o resultado (só para o log; NÃO vai para a IA).
+        # Enter grava "seguir"; texto só quando a decisão foge do óbvio.
+        decisao_pos = input("\n  Decisão do grupo (Enter = seguir) > ").strip()
         registro.update({
             "saida_resumo": resumir(res.saida, max_chars),
             "saida_arquivo": caminho_raw, "saida_sha256": sha,
             "parametros_executados": res.parametros_executados,
-            "decisao_grupo_pos_resultado": decisao_pos,
+            "decisao_grupo_pos_resultado": decisao_pos or "seguir",
         })
         reg.registrar(registro)
 
