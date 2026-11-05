@@ -23,8 +23,9 @@ def main() -> None:
     plano = PLANO.read_text(encoding="utf-8")
 
     print(f"Enviando o plano ({len(plano)} caracteres) ao modelo {cfg['nome']}...")
-    print("A inferência na CPU pode levar alguns minutos. Aguarde.\n")
+    print("A inferência na CPU é lenta; a resposta aparece aos poucos abaixo.\n")
 
+    # stream=True: o texto chega aos poucos, então dá para ver o progresso e não estoura timeout.
     resposta = requests.post(
         f"{cfg['url']}/api/chat",
         json={
@@ -33,15 +34,28 @@ def main() -> None:
                 {"role": "system", "content": prompt_sistema},
                 {"role": "user", "content": f"Plano de testes do grupo:\n\n{plano}"},
             ],
-            "stream": False,
+            "stream": True,
             "think": cfg["think"],
             "options": {"temperature": cfg["temperature"], "seed": cfg["seed"], "num_ctx": cfg["num_ctx"]},
         },
-        timeout=cfg["timeout_s"],
+        timeout=(30, 1800),   # 30s para conectar, até 30 min entre pedaços da resposta
+        stream=True,
     )
     resposta.raise_for_status()
-    dados = resposta.json()
-    texto = dados["message"]["content"]
+
+    partes = []
+    for linha in resposta.iter_lines():
+        if not linha:
+            continue
+        pedaco = json.loads(linha)
+        trecho = pedaco.get("message", {}).get("content", "")
+        if trecho:
+            print(trecho, end="", flush=True)   # mostra a resposta chegando
+            partes.append(trecho)
+        if pedaco.get("done"):
+            break
+    texto = "".join(partes)
+    print()
 
     carimbo = datetime.now().astimezone()
     destino = BASE.parent / "logs" / f"revisao_llm_{carimbo:%Y%m%d_%H%M}.txt"
@@ -52,7 +66,6 @@ def main() -> None:
         encoding="utf-8",
     )
 
-    print(texto)
     print(f"\n--- Resposta salva em: {destino}")
     print("Agora: leia as sugestões e preencha a tabela em planejamento/revisao_llm.md")
     print("(para cada uma: aceita / modificada / rejeitada + justificativa do grupo).")
