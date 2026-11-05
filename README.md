@@ -73,9 +73,15 @@ python agent.py --investigacao I1 --objetivo "Descrição do objetivo em uma fra
 ```
 A cada passo o modelo propõe uma ação e o grupo decide: **[A]utorizar / [M]odificar / [R]ejeitar / [F]inalizar**. Tudo é registrado em `logs/investigacao_<id>.jsonl`, e a saída completa de cada ferramenta em `logs/raw/`.
 
-**Ferramentas integradas:** `http_request` (requisições ao Juice Shop) e `dir_enum` (descoberta de rotas por lista pré-definida). O alvo e as portas são fixos no `config.yaml`; a trava de escopo fica no código das ferramentas (`agent/tools/`).
+**Ferramentas integradas:** `login` (autentica com a conta de teste), `http_request` (requisições ao Juice Shop, usando o token da sessão) e `dir_enum` (descoberta de rotas por lista pré-definida). O alvo e as portas são fixos no `config.yaml`; a trava de escopo fica no código das ferramentas (`agent/tools/`). As credenciais ficam em `agent/credenciais.local.yaml` (fora do git).
 
-> Rodar o `restore.sh` e confirmar o estado inicial **antes** de cada investigação.
+**Rotina antes de cada investigação que usa login:**
+```bash
+# 1. feche o Juice Shop no navegador (aberto, ele re-dispara desafios)
+~/af-techacker/lab/restore.sh          # 2. zera o Juice Shop
+~/af-techacker/lab/seed_usuario.sh     # 3. recria a conta de teste (apagada pelo restore)
+```
+Para investigações sem login (ex.: I1), o passo 3 é dispensável.
 
 ### 6. Restauração do Juice Shop
 ```bash
