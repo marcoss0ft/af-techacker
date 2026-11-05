@@ -1,0 +1,4 @@
+# Modelo. Copie para `credenciais.local.yaml` (que o git ignora) e preencha com a
+# conta de teste criada no Juice Shop. A senha nunca entra no repositório nem nos logs.
+email: "conta-de-teste@exemplo.com"
+senha: "senha-de-teste"

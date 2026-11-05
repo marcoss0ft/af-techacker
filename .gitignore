@@ -8,6 +8,7 @@ venv/
 .env
 *.ovpn
 *.key
+agent/credenciais.local.yaml
 
 # Material da disciplina (não é nosso para redistribuir)
 AF - Tecnologias Hackers 26-2.pdf

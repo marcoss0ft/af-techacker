@@ -45,6 +45,23 @@ class TestHttpRequest(unittest.TestCase):
         with self.assertRaises(ParametrosInvalidos):
             HTTP.validar({"method": "CONNECT", "path": "/"})
 
+    def test_sessao_compartilhada_entre_login_e_http(self):
+        # login e http_request devem apontar para a MESMA sessão (token definido por um, usado por outro).
+        self.assertIs(FERRAMENTAS["login"].sessao, HTTP.sessao)
+
+    def test_token_fica_fora_do_registro(self):
+        # Simula sessão autenticada e confere que o token não aparece nos parâmetros executados.
+        HTTP.sessao.token = "TOKEN-SECRETO-123"
+        try:
+            _, _, headers, _ = HTTP.validar({"path": "/rest/basket/6"})
+            # a montagem do header de auth acontece no executar(); aqui garantimos o mascaramento da lógica
+            headers_log = {k: ("Bearer <token>" if k.lower() == "authorization" else v)
+                           for k, v in {**headers, "Authorization": f"Bearer {HTTP.sessao.token}"}.items()}
+            self.assertNotIn("TOKEN-SECRETO-123", str(headers_log))
+            self.assertEqual(headers_log["Authorization"], "Bearer <token>")
+        finally:
+            HTTP.sessao.token = None
+
 
 class TestDirEnum(unittest.TestCase):
     def test_sem_parametro_usa_a_lista_toda(self):

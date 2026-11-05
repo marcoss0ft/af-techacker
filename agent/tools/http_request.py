@@ -4,7 +4,7 @@ from urllib.parse import urlsplit
 
 import requests
 
-from .base import ForaDeEscopo, ParametrosInvalidos, ResultadoFerramenta, recusar_destino_diferente
+from .base import ForaDeEscopo, ParametrosInvalidos, ResultadoFerramenta, Sessao, recusar_destino_diferente
 
 METODOS = {"GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"}
 
@@ -18,12 +18,13 @@ class HttpRequest:
         "body (texto ou objeto JSON, opcional). O endereço do servidor é fixo: informe só o caminho."
     )
 
-    def __init__(self, cfg_alvo: dict, cfg_limites: dict):
+    def __init__(self, cfg_alvo: dict, cfg_limites: dict, sessao: Sessao):
         self.base_url = cfg_alvo["base_url"].rstrip("/")
         self.host = cfg_alvo["host"]
         self.portas_permitidas = set(cfg_alvo["portas_permitidas"])
         self.timeout = cfg_limites["timeout_ferramenta_s"]
         self.max_bytes = cfg_limites["max_bytes_resposta_http"]
+        self.sessao = sessao
 
     def validar(self, p: dict) -> tuple[str, str, dict, object]:
         """Confere escopo e formato sem tocar na rede. Devolve (método, url, headers, body)."""
@@ -57,6 +58,12 @@ class HttpRequest:
     def executar(self, p: dict) -> ResultadoFerramenta:
         metodo, url, headers, body = self.validar(p)
 
+        # Se houver sessão autenticada e o modelo não pôs um Authorization próprio, usa o token.
+        autenticado = False
+        if self.sessao.token and not any(k.lower() == "authorization" for k in headers):
+            headers["Authorization"] = f"Bearer {self.sessao.token}"
+            autenticado = True
+
         envio = {}
         if isinstance(body, (dict, list)):
             envio["json"] = body
@@ -78,7 +85,10 @@ class HttpRequest:
         if truncado:
             linhas.append(f"[... corpo truncado em {self.max_bytes} bytes ...]")
 
-        executados = {"method": metodo, "path": url[len(self.base_url):], "headers": headers}
+        # No registro, não gravar o token: marcar só que a requisição foi autenticada.
+        headers_log = {k: ("Bearer <token>" if k.lower() == "authorization" else v) for k, v in headers.items()}
+        executados = {"method": metodo, "path": url[len(self.base_url):], "headers": headers_log,
+                      "autenticado": autenticado}
         if body is not None:
             executados["body"] = body
         return ResultadoFerramenta("\n".join(linhas), executados)

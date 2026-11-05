@@ -17,6 +17,17 @@ class ResultadoFerramenta:
     parametros_executados: dict  # o que de fato foi executado, depois da validação
 
 
+@dataclass
+class Sessao:
+    """Estado compartilhado entre as ferramentas: o token do usuário autenticado.
+
+    A ferramenta `login` preenche o token; o `http_request` o usa no cabeçalho
+    Authorization. Assim o agente age como o usuário de teste nas requisições.
+    """
+    token: str | None = None
+    usuario: str | None = None
+
+
 # Nomes de parâmetro com que o modelo poderia tentar trocar o destino.
 CAMPOS_DE_DESTINO = ("host", "alvo", "target", "url", "ip")
 
