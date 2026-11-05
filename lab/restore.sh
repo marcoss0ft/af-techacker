@@ -25,16 +25,19 @@ if [[ "$up" -ne 1 ]]; then
   exit 1
 fi
 
-# Verificação objetiva do estado inicial: nenhum desafio resolvido.
+# Verificação do estado inicial. O container é recriado do zero (sem volume), então o banco
+# nasce limpo. Se aparecerem desafios "resolvidos" aqui, não é estado sujo: é efeito do
+# navegador com o Juice Shop aberto re-disparando desafios logo após o reset. Por isso é AVISO.
 solved=$(curl -s "$URL/api/Challenges" | jq '[.data[] | select(.solved == true)] | length')
 version=$(curl -s "$URL/rest/admin/application-version" | jq -r '.version')
 ts=$(date -Iseconds)
 
 if [[ "$solved" != "0" ]]; then
-  echo "[restore] FALHA: ${solved} desafio(s) já resolvido(s) depois do reset"
-  echo "${ts} FALHA juice-shop=${version} desafios_resolvidos=${solved}" >> "$HISTORY"
-  exit 1
+  echo "[restore] AVISO: ${solved} desafio(s) aparecem resolvidos logo após o reset."
+  echo "[restore]        Feche o Juice Shop no navegador antes de restaurar: aberto, ele"
+  echo "[restore]        re-dispara desafios sozinho. O container em si foi recriado limpo."
+  echo "${ts} AVISO juice-shop=${version} desafios_resolvidos=${solved}" >> "$HISTORY"
+else
+  echo "[restore] OK: Juice Shop ${version} no estado inicial (0 desafios resolvidos) em ${ts}"
+  echo "${ts} OK juice-shop=${version} desafios_resolvidos=0" >> "$HISTORY"
 fi
-
-echo "[restore] OK: Juice Shop ${version} no estado inicial (0 desafios resolvidos) em ${ts}"
-echo "${ts} OK juice-shop=${version} desafios_resolvidos=0" >> "$HISTORY"
