@@ -1,0 +1,1 @@
+Autenticado como free@discord.com. Token obtido (início: eyJ0eXAiOiJK...). As próximas requisições usarão este token.

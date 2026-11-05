@@ -1,0 +1,16 @@
+HTTP 200 OK
+Access-Control-Allow-Origin: *
+X-Content-Type-Options: nosniff
+X-Frame-Options: SAMEORIGIN
+Feature-Policy: payment 'self'
+X-Recruiting: /#/jobs
+Content-Type: application/json; charset=utf-8
+ETag: W/"7ca-m0Khuaic3TlPRLpk0CLI+fjNMhU"
+Vary: Accept-Encoding
+Content-Encoding: gzip
+Date: Thu, 05 Nov 2026 17:52:42 GMT
+Connection: keep-alive
+Keep-Alive: timeout=5
+Transfer-Encoding: chunked
+
+{"status":"success","data":{"id":1,"coupon":null,"UserId":1,"createdAt":"2026-11-05T17:47:23.017Z","updatedAt":"2026-11-05T17:47:23.017Z","Products":[{"id":1,"name":"Apple Juice (1000ml)","description":"The all-time classic.","price":1.99,"deluxePrice":0.99,"image":"apple_juice.jpg","alternateImages":[{"file":"apple_juice-1x.avif","format":"image/avif","density":"1x"},{"file":"apple_juice-2x.avif","format":"image/avif","density":"2x"},{"file":"apple_juice-3x.avif","format":"image/avif","density":"3x"}],"createdAt":"2026-11-05T17:47:22.736Z","updatedAt":"2026-11-05T17:47:22.736Z","deletedAt":null,"BasketItem":{"ProductId":1,"BasketId":1,"id":1,"quantity":2,"createdAt":"2026-11-05T17:47:23.087Z","updatedAt":"2026-11-05T17:47:23.087Z"}},{"id":2,"name":"Orange Juice (1000ml)","description":"Made from oranges hand-picked by Uncle Dittmeyer.","price":2.99,"deluxePrice":2.49,"image":"orange_juice.jpg","alternateImages":[{"file":"orange_juice-1x.avif","format":"image/avif","density":"1x"},{"file":"orange_juice-2x.avif","format":"image/avif","density":"2x"},{"file":"orange_juice-3x.avif","format":"image/avif","density":"3x"}],"createdAt":"2026-11-05T17:47:22.736Z","updatedAt":"2026-11-05T17:47:22.736Z","deletedAt":null,"BasketItem":{"ProductId":2,"BasketId":1,"id":2,"quantity":3,"createdAt":"2026-11-05T17:47:23.087Z","updatedAt":"2026-11-05T17:47:23.087Z"}},{"id":3,"name":"Eggfruit Juice (500ml)","description":"Now with even more exotic flavour.","price":8.99,"deluxePrice":8.99,"image":"eggfruit_juice.jpg","alternateImages":[{"file":"eggfruit_juice-1x.avif","format":"image/avif","density":"1x"},{"file":"eggfruit_juice-2x.avif","format":"image/avif","density":"2x"},{"file":"eggfruit_juice-3x.avif","format":"image/avif","density":"3x"}],"createdAt":"2026-11-05T17:47:22.737Z","updatedAt":"2026-11-05T17:47:22.737Z","deletedAt":null,"BasketItem":{"ProductId":3,"BasketId":1,"id":3,"quantity":1,"createdAt":"2026-11-05T17:47:23.087Z","updatedAt":"2026-11-05T17:47:23.087Z"}}]}}

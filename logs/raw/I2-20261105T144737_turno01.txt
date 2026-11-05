@@ -1,0 +1,3 @@
+Sessão pronta para free@discord.com. conta não existia; registrei; autenticado; token obtido (início eyJ0eXAiOi...); adicionei 1 item ao carrinho.
+O carrinho DESTE usuário é /rest/basket/6.
+O token autentica QUALQUER requisição seguinte (não só a do carrinho): o objetivo pode incluir outros recursos indexados por id.

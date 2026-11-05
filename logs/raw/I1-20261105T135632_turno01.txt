@@ -1,0 +1,34 @@
+linha de base (caminho inexistente): HTTP 200, 9984 bytes
+
+/ftp                                          HTTP 200  11327 bytes  <-- difere da base
+/ftp/                                         HTTP 200  11284 bytes  <-- difere da base
+/administration                               HTTP 200  9984 bytes
+/metrics                                      HTTP 200  25991 bytes  <-- difere da base
+/api                                          HTTP 500  2408 bytes  <-- difere da base
+/rest                                         HTTP 500  2410 bytes  <-- difere da base
+/rest/products/search                         HTTP 200  26963 bytes  <-- difere da base
+/rest/admin/application-version               HTTP 200  20 bytes  <-- difere da base
+/rest/admin/application-configuration         HTTP 200  36154 bytes  <-- difere da base
+/robots.txt                                   HTTP 200  28 bytes  <-- difere da base
+/sitemap.xml                                  HTTP 200  9984 bytes
+/.well-known/security.txt                     HTTP 200  483 bytes  <-- difere da base
+/assets                                       HTTP 301  156 bytes  <-- difere da base
+/ftp/legal.md                                 HTTP 200  3047 bytes  <-- difere da base
+/ftp/package.json.bak                         HTTP 403  1934 bytes  <-- difere da base
+/ftp/coupons_2013.md.bak                      HTTP 403  1934 bytes  <-- difere da base
+/ftp/encrypt.pyc                              HTTP 403  1934 bytes  <-- difere da base
+/redirect                                     HTTP 500  2531 bytes  <-- difere da base
+/snippets                                     HTTP 200  9984 bytes
+/support/logs                                 HTTP 200  8889 bytes  <-- difere da base
+/b2b/v2                                       HTTP 401  972 bytes  <-- difere da base
+/the/marvellous/mysteries/of/this/application HTTP 200  9984 bytes
+/.env                                         HTTP 200  9984 bytes
+/ftp/eastere.gg                               HTTP 403  1934 bytes  <-- difere da base
+/ftp/incident-support.kdbx                    HTTP 200  3246 bytes  <-- difere da base
+/ftp/suspicious_errors.yml                    HTTP 403  1934 bytes  <-- difere da base
+/ftp/quarantine                               HTTP 200  9596 bytes  <-- difere da base
+/package.json                                 HTTP 200  9984 bytes
+/.git/config                                  HTTP 200  9984 bytes
+/ftp/announcement_encrypted.md                HTTP 200  369237 bytes  <-- difere da base
+
+23 de 30 caminhos diferem da linha de base.
