@@ -48,9 +48,9 @@
 
 **Hipótese 1:** acredito que o servidor entrega um carrinho pelo número informado na URL (`/rest/basket/<id>`), sem checar se ele pertence ao usuário autenticado (IDOR).
 - **Porque observei (16:01):** ao abrir o carrinho logado com a conta de teste, a requisição `GET /rest/basket/6` devolveu `"id": 6` e `"UserId": 25` — ou seja, o carrinho é identificado por um número pequeno e sequencial, e a resposta o liga a um usuário específico (print `planejamento/prints/i2_basket_id.png`).
-- **Como testar:** com o `http_request`, autenticado como a conta de teste, pedir `/rest/basket/5` (e outros números vizinhos) e comparar o `UserId` da resposta com o nosso (25).
-- **Confirma se:** a resposta traz um carrinho com `UserId` diferente de 25, ou produtos que não são nossos.
-- **Refuta se:** a resposta é 401/403, vazia, ou devolve apenas o nosso próprio carrinho.
+- **Como testar:** com o `http_request`, autenticado como a conta de teste, pedir `/rest/basket/5` (e outros números vizinhos) e comparar o `UserId` da resposta com o nosso (25). Após a revisão (Fase 3b), ampliamos para **um segundo recurso** além do carrinho (ex.: um endpoint de pedidos/feedback indexado por id), para verificar se a falha de autorização é um padrão da aplicação, e não um caso isolado.
+- **Confirma se:** a resposta traz um recurso com `UserId`/dono diferente de 25, ou dados que não são nossos.
+- **Refuta se:** a resposta é 401/403, vazia, ou devolve apenas o nosso próprio recurso.
 
 **Ferramenta:** `http_request`.
 **Evidência esperada no log:** a requisição com o id trocado, o código de resposta e o `UserId`/produtos retornados que não são da conta de teste.

@@ -49,7 +49,16 @@ descoberta_rotas:
     - /support/logs
     - /b2b/v2
     - /the/marvellous/mysteries/of/this/application
-  max_caminhos: 25               # teto por execução, para não virar uma varredura
+    # Arquivos sensíveis / backup (reforço após a revisão da Fase 3b):
+    - /.env
+    - /ftp/eastere.gg
+    - /ftp/incident-support.kdbx
+    - /ftp/suspicious_errors.yml
+    - /ftp/quarantine
+    - /package.json
+    - /.git/config
+    - /ftp/announcement_encrypted.md
+  max_caminhos: 32               # teto por execução, para não virar uma varredura
   intervalo_ms: 150              # pausa entre requisições (rate limit)
 
 logs:
