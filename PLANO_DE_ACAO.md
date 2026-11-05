@@ -54,9 +54,7 @@
 
 ## Fase 0 — Organização (antes de tudo)
 
-- [ ] **Perguntar ao professor, por escrito:**
-  1. ✅ "Podemos rodar o agente direto no servidor do kit, sem Kali, acessando o Juice Shop por túnel SSH?" Confirmado em 03/11/2026.
-  2. "Podemos usar IAs externas (ChatGPT, Claude) no código e nos documentos? Se sim, como declarar?"
+- [x] **Confirmado com o professor:** rodar o agente direto no servidor do kit, sem Kali, acessando o Juice Shop por túnel SSH (03/11/2026).
 - [x] **Ver se o servidor aguenta a IA.** Medido em 03/11/2026: **RAM total 15 GiB, disponível 14 GiB, 20 núcleos, 84 GB livres em disco**. Folga ampla para o Qwen3 4B (3–4 GB) junto com Apache, MariaDB e Juice Shop. Topologia A confirmada; a B não é necessária.
 - [ ] **Repositório git privado** (GitHub privado). Vocês editam no notebook e fazem `git pull` no servidor.
   ```
@@ -352,7 +350,6 @@ Responder às 7 perguntas da seção 6, cada uma **com exemplos do log**:
 - Total previsto: 5,5 p. A meia página de folga absorve o diagrama e as tabelas sem passar do limite de 6.
 - Instalação vai para o README, não para o relatório.
 - Citar hash e horário do push do plano do grupo (Fase 3a) e do commit da revisão (Fase 3b).
-- Declaração de uso de IA externa conforme a resposta do professor.
 
 **Vídeo (até 10 min):**
 - 0:00–1:00 Objetivo e arquitetura (diagrama)
@@ -365,7 +362,6 @@ Responder às 7 perguntas da seção 6, cada uma **com exemplos do log**:
 
 ## Checklist final de entrega
 
-- [ ] Resposta do professor sobre o Kali e sobre IA externa
 - [ ] README reproduzido **no kit** por quem não montou
 - [ ] `lab/` com compose de tag fixa (só `127.0.0.1`), `restore.sh` com verificação, `check_env.sh`, saídas do teste de isolamento e regra de saída do pfSense documentada
 - [ ] Versão do Ollama, digest do modelo, quantização, `num_ctx`, `temperature` e `seed` no README
