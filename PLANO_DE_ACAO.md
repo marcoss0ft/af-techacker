@@ -91,6 +91,8 @@
 
 ## Fase 1 — Laboratório reproduzível (15%)
 
+> ✅ **Status em 03/11/2026:** Juice Shop 20.3.0, Ollama 0.40.14 e `qwen3:4b` rodando no `discorder`; restore com verificação OK; `check_env.sh` TUDO OK; isolamento comprovado de dentro e de fora (`logs/check_env_20261103_1109.txt`, `logs/isolamento_notebook_20261103_1121.txt`). Pendente: regra de saída no pfSense (1.5), que só precisa estar pronta antes da Fase 4.
+
 > **Regra do enunciado (seções 1 e 7):** o ambiente roda "no kit de laboratório". Alvo, modelo e agente ficam no `discorder`. Nada roda em nuvem nem usa API externa de LLM.
 
 ### 1.1 Preparar o servidor
@@ -122,8 +124,8 @@
 - Opcionais, se as investigações pedirem: `ffuf` (wordlist pequena), decodificador de JWT (local, sem rede). `sqlmap` só com limites estritos e se o plano do grupo justificar.
 
 ### 1.5 Isolamento (simples no caminho A)
-- [ ] **Prova de que só o localhost escuta:** `ss -tlnp | grep -E '3000|11434'` deve mostrar `127.0.0.1`. Guardar a saída em `lab/`.
-- [ ] **Teste do lado de fora:** do notebook (com a VPN ligada), `curl -m 5 http://10.0.80.3:3000` e `curl -m 5 http://10.0.80.3:11434` devem **falhar**. Pelo túnel SSH, `http://localhost:3000` deve **funcionar**. Guardar as três saídas.
+- [x] **Prova de que só o localhost escuta:** feita pelo `check_env.sh` (`logs/check_env_20261103_1109.txt`).
+- [x] **Teste do lado de fora:** do notebook (VPN 10.8.0.2), as portas 3000 e 11434 recusam conexão; pelo túnel SSH, `http://localhost:3000` responde 200; o WordPress (controle) responde 200, provando que a VPN estava ativa (`logs/isolamento_notebook_20261103_1121.txt`).
 - [ ] **Sem internet durante os testes:** no pfSense, uma regra na LAN com ação Block, origem `SRV_WEB`, destino *não* `REDES_LAB` (novo alias: 10.0.80.0/24 e 10.8.0.0/24), log ligado, **acima** de "Default allow LAN to any". Ligar só nas rodadas de teste; o `docker pull` e o `ollama pull` são feitos antes. As respostas do WordPress e do Nextcloud continuam funcionando, porque o pfSense é stateful. Essa regra impede que o Juice Shop busque URLs externas sugeridas pela IA. Documentar em `lab/pfsense_regra_saida.md`, com print analisado.
 - [ ] **Não** criar port forward novo na WAN.
 
@@ -168,12 +170,12 @@ Tudo gravado em logs/investigacao_<id>.jsonl, uma linha por turno
 ```
 
 ### 2.2 Ferramentas expostas ao modelo (≥ 2, ≥ 1 no Juice Shop)
+As duas ferramentas saem das 3 investigações escolhidas (ver `planejamento/plano_testes_grupo.md`). nmap e leitor de JWT foram considerados e descartados: o alvo já é conhecido (nmap) e o I2 ficou com IDOR, não com o token (JWT).
+
 | Ferramenta | Função | Limites (no código) |
 |---|---|---|
-| `http_request(method, path, headers, body)` | Interagir com o Juice Shop | Alvo fixo `http://127.0.0.1:3000` vindo do `config`; o modelo só escolhe **path**, método, headers e corpo; **não segue redirect** para fora; timeout; tamanho máximo de corpo |
-| `nmap_scan(flags)` | Reconhecimento de serviço | Alvo fixo `127.0.0.1`, **só a porta 3000**. Ficam bloqueadas no código, explicitamente: 22, 80 (WordPress), 8000 (Nextcloud), 3306 (MariaDB), 11434 (Ollama). Flags de uma allowlist, sem `--script` arbitrário |
-| `dir_enum(wordlist)` (opcional) | Descoberta de rotas | Wordlist pequena e pré-definida; rate limit; **filtro por tamanho de resposta**, porque o Juice Shop é SPA e devolve 200 com o `index.html` para quase qualquer rota |
-| `decode_jwt(token)` (opcional) | Análise de tokens | Local, sem rede |
+| `http_request(method, path, headers, body)` | Interagir com o Juice Shop (I2 IDOR, I3 XSS, confirmações de I1) | Alvo fixo `http://127.0.0.1:3000` vindo do `config`; o modelo só escolhe **path**, método, headers e corpo; **não segue redirect** para fora; timeout; tamanho máximo de corpo |
+| `dir_enum(caminhos)` | Descoberta de rotas (I1) | Só caminhos de uma **lista pré-definida** no `config`; teto de caminhos por execução; rate limit; **comparação com uma linha de base** (caminho inexistente), porque o Juice Shop é SPA e devolve 200 com o `index.html` para quase qualquer rota |
 
 **Regras de segurança (obrigatórias pelo enunciado e ponto de nota):**
 - A trava de escopo fica **no código dos wrappers**, não só no prompt. Pedido para outro host/porta → recusa + registro (`tags: ["fora_escopo"]`). Isso é essencial aqui, porque o alvo divide o servidor com o WordPress, o Nextcloud, o MariaDB e o próprio Ollama. Um "achado" neles não é um achado do Juice Shop.

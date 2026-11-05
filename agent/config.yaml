@@ -1,0 +1,56 @@
+# Configuração do agente. O modelo nunca escolhe host nem porta: eles vêm daqui.
+
+alvo:
+  base_url: "http://127.0.0.1:3000"      # Juice Shop
+  host: "127.0.0.1"
+  portas_permitidas: [3000]
+  # Outros serviços do mesmo servidor, registrados como referência do que está fora do escopo:
+  # 22 SSH, 80 WordPress, 3306 MariaDB, 8000 Nextcloud, 11434 Ollama
+  portas_proibidas: [22, 80, 3306, 8000, 11434]
+
+modelo:
+  url: "http://127.0.0.1:11434"
+  nome: "qwen3:4b"
+  think: false            # o modo pensamento gerou ~1200 tokens para uma frase (ver README)
+  temperature: 0.2        # baixa: respostas mais estáveis entre execuções
+  seed: 42
+  num_ctx: 8192
+  timeout_s: 300
+
+limites:
+  max_turnos: 15                 # por investigação
+  max_tentativas_json: 2         # se o JSON vier inválido, 1 nova tentativa antes de passar ao humano
+  max_chars_saida_modelo: 3500   # saída truncada enviada ao modelo; a completa vai para logs/raw/
+  timeout_ferramenta_s: 60
+  max_bytes_resposta_http: 200000
+
+descoberta_rotas:
+  # Lista pequena e pré-definida; o modelo escolhe a partir dela, não gera caminhos livres.
+  wordlist:
+    - /ftp
+    - /ftp/
+    - /administration
+    - /metrics
+    - /api
+    - /rest
+    - /rest/products/search
+    - /rest/admin/application-version
+    - /rest/admin/application-configuration
+    - /robots.txt
+    - /sitemap.xml
+    - /.well-known/security.txt
+    - /assets
+    - /ftp/legal.md
+    - /ftp/package.json.bak
+    - /ftp/coupons_2013.md.bak
+    - /ftp/encrypt.pyc
+    - /redirect
+    - /snippets
+    - /support/logs
+    - /b2b/v2
+    - /the/marvellous/mysteries/of/this/application
+  max_caminhos: 25               # teto por execução, para não virar uma varredura
+  intervalo_ms: 150              # pausa entre requisições (rate limit)
+
+logs:
+  dir: "../logs"

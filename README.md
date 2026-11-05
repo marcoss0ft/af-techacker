@@ -61,7 +61,21 @@ O Ollama escuta por padrão só em `127.0.0.1:11434`. **Não** alterar `OLLAMA_H
 Servidor medido em 03/11/2026: 15 GiB de RAM (14 GiB disponíveis), 20 núcleos, sem GPU dedicada; o modelo roda na CPU.
 
 ### 5. Agente
-_A preencher (Fase 2)._
+```bash
+cd ~/af-techacker/agent
+python3 -m venv .venv && . .venv/bin/activate
+pip install -r requirements.txt
+python -m unittest test_escopo        # 14 testes da trava de escopo (não acessam a rede)
+```
+Rodar uma investigação (dentro do `tmux`):
+```bash
+python agent.py --investigacao I1 --objetivo "Descrição do objetivo em uma frase."
+```
+A cada passo o modelo propõe uma ação e o grupo decide: **[A]utorizar / [M]odificar / [R]ejeitar / [F]inalizar**. Tudo é registrado em `logs/investigacao_<id>.jsonl`, e a saída completa de cada ferramenta em `logs/raw/`.
+
+**Ferramentas integradas:** `http_request` (requisições ao Juice Shop) e `dir_enum` (descoberta de rotas por lista pré-definida). O alvo e as portas são fixos no `config.yaml`; a trava de escopo fica no código das ferramentas (`agent/tools/`).
+
+> Rodar o `restore.sh` e confirmar o estado inicial **antes** de cada investigação.
 
 ### 6. Restauração do Juice Shop
 ```bash
