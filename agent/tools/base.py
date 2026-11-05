@@ -21,11 +21,12 @@ class ResultadoFerramenta:
 class Sessao:
     """Estado compartilhado entre as ferramentas: o token do usuário autenticado.
 
-    A ferramenta `login` preenche o token; o `http_request` o usa no cabeçalho
-    Authorization. Assim o agente age como o usuário de teste nas requisições.
+    A ferramenta `login` preenche o token (e o basket id); o `http_request` usa o token
+    no cabeçalho Authorization. Assim o agente age como o usuário de teste nas requisições.
     """
     token: str | None = None
     usuario: str | None = None
+    basket_id: int | None = None   # id do carrinho do próprio usuário de teste
 
 
 # Nomes de parâmetro com que o modelo poderia tentar trocar o destino.
