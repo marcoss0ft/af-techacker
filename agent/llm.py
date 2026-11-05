@@ -80,6 +80,9 @@ class LLM:
         return ResultadoModelo(None, bruta, self.max_tentativas, self._ms_desde(inicio), erros, tokens)
 
     def _chat(self, mensagens: list[dict]) -> tuple[str, int]:
+        opcoes = {"temperature": self.cfg["temperature"], "num_ctx": self.cfg["num_ctx"]}
+        if self.cfg.get("seed") is not None:   # só fixa o seed quando explicitamente configurado
+            opcoes["seed"] = self.cfg["seed"]
         resposta = requests.post(
             f"{self.cfg['url']}/api/chat",
             json={
@@ -88,11 +91,7 @@ class LLM:
                 "stream": False,
                 "think": self.cfg["think"],
                 "format": self.schema,
-                "options": {
-                    "temperature": self.cfg["temperature"],
-                    "seed": self.cfg["seed"],
-                    "num_ctx": self.cfg["num_ctx"],
-                },
+                "options": opcoes,
             },
             timeout=self.cfg["timeout_s"],
         )

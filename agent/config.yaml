@@ -12,9 +12,11 @@ modelo:
   url: "http://127.0.0.1:11434"
   nome: "qwen3:4b"
   think: false            # o modo pensamento gerou ~1200 tokens para uma frase (ver README)
-  temperature: 0.2        # baixa: respostas mais estáveis entre execuções
-  seed: 42
-  num_ctx: 8192
+  temperature: 0.2        # baixa: respostas estáveis, mas com alguma variação para escapar de loops
+  seed: null              # SEM seed fixo nas investigações: com seed fixo + contexto parecido o
+                          # modelo repete a mesma proposta (loop). Para o experimento de
+                          # reprodutibilidade (Fase 2.5), defina um número aqui.
+  num_ctx: 16384          # folga para o histórico crescer sem truncar o objetivo/prompt de sistema
   timeout_s: 300
 
 limites:

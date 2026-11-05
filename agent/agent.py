@@ -73,6 +73,58 @@ def resumir(texto: str, limite: int) -> str:
     return texto if len(texto) <= limite else texto[:limite] + f"\n[... truncado em {limite} chars ...]"
 
 
+def executar_ferramenta(ferramenta, parametros, decisao, registro, resposta_bruta, reg, turno, max_chars):
+    """Executa a ferramenta com a trava de escopo, registra o turno e devolve as mensagens ao modelo.
+
+    Usada tanto quando o modelo propõe uma ferramenta quanto quando o grupo IMPÕE uma ação
+    no lugar de um 'finalizar'. `decisao` é "AUTORIZADO" ou "M" (modificado/forçado).
+    """
+    registro.update({
+        "ferramenta_proposta": ferramenta.nome,
+        "decisao_humana": "MODIFICADO" if decisao == "M" else "AUTORIZADO",
+        "parametros_executados": parametros,
+    })
+    try:
+        res = ferramenta.executar(parametros)
+    except ForaDeEscopo as e:
+        print(f"  BLOQUEADO pela trava de escopo: {e}")
+        registro.update({"bloqueio_escopo": str(e), "tags": ["fora_escopo"]})
+        reg.registrar(registro)
+        return [{"role": "assistant", "content": resposta_bruta},
+                {"role": "user", "content":
+                    f"A ação foi bloqueada pela política de escopo: {e}. Proponha uma ação dentro do alvo."}]
+    except ParametrosInvalidos as e:
+        print(f"  PARÂMETROS INVÁLIDOS: {e}")
+        registro.update({"erro_parametros": str(e), "tags": ["parametros_invalidos"]})
+        reg.registrar(registro)
+        return [{"role": "assistant", "content": resposta_bruta},
+                {"role": "user", "content":
+                    f"Os parâmetros da ação são inválidos: {e}. Corrija os parâmetros e proponha de novo."}]
+    except Exception as e:  # falha de rede, timeout etc.
+        print(f"  ERRO ao executar: {e}")
+        registro.update({"erro_execucao": str(e), "tags": ["erro_execucao"]})
+        reg.registrar(registro)
+        return [{"role": "assistant", "content": resposta_bruta},
+                {"role": "user", "content": f"A ferramenta falhou: {e}. Proponha outra ação."}]
+
+    caminho_raw, sha = reg.salvar_saida_bruta(turno, res.saida)
+    print("  Resultado (início):")
+    print(textwrap.indent(resumir(res.saida, 1200), "    "))
+
+    decisao_pos = input("\n  Decisão do grupo (Enter = seguir) > ").strip()
+    registro.update({
+        "saida_resumo": resumir(res.saida, max_chars),
+        "saida_arquivo": caminho_raw, "saida_sha256": sha,
+        "parametros_executados": res.parametros_executados,
+        "decisao_grupo_pos_resultado": decisao_pos or "seguir",
+    })
+    reg.registrar(registro)
+    return [{"role": "assistant", "content": resposta_bruta},
+            {"role": "user", "content":
+                f"Resultado da ferramenta {ferramenta.nome}:\n{resumir(res.saida, max_chars)}\n\n"
+                "Interprete o resultado e proponha a próxima ação, ou finalize se já for suficiente."}]
+
+
 def main() -> None:
     ap = argparse.ArgumentParser(description="Agente supervisionado de testes de segurança.")
     ap.add_argument("--investigacao", required=True, help="Identificador, ex.: I1, I2, I3")
@@ -104,6 +156,7 @@ def main() -> None:
 
     max_turnos = cfg["limites"]["max_turnos"]
     max_chars = cfg["limites"]["max_chars_saida_modelo"]
+    assinatura_anterior = None   # para detectar proposta repetida (possível loop)
 
     for turno in range(1, max_turnos + 1):
         resultado = llm.propor(mensagens)
@@ -130,6 +183,17 @@ def main() -> None:
         proposta = resultado.proposta
         mostrar_proposta(turno, proposta)
 
+        # Detecta repetição: mesma ação/ferramenta/parâmetros/conclusão do turno anterior.
+        assinatura = json.dumps(
+            [proposta.get("acao"), proposta.get("ferramenta"),
+             proposta.get("parametros"), proposta.get("conclusao")],
+            ensure_ascii=False, sort_keys=True)
+        repetida = assinatura == assinatura_anterior
+        assinatura_anterior = assinatura
+        if repetida:
+            print("  ⚠ O modelo REPETIU a proposta do turno anterior (possível loop). "
+                  "Considere Modificar/forçar a ação ou Rejeitar com nova orientação.")
+
         registro = {
             "turno": turno, "objetivo": args.objetivo,
             "config": llm.config_para_log(prompt_sha),
@@ -139,11 +203,12 @@ def main() -> None:
             "interpretacao_modelo": proposta.get("interpretacao"),
             "fatos_observados": proposta.get("fatos_observados"),
             "duracao_ms": {"modelo": resultado.duracao_ms},
-            "tags": [],
+            "tags": ["repeticao"] if repetida else [],
         }
 
         # Caminho "finalizar".
         if proposta.get("acao") == "finalizar":
+            print("  (F finaliza; M força você mesmo a próxima ação; R rejeita e pede outra)")
             decisao = ler_decisao()
             if decisao == "F":
                 conclusao_grupo = input("  Conclusão do grupo (Enter p/ aceitar a do modelo) > ").strip()
@@ -155,7 +220,18 @@ def main() -> None:
                 reg.registrar(registro)
                 print("\nInvestigação encerrada. Preencha investigacoes/%s.md." % args.investigacao)
                 break
-            # O grupo não quer finalizar: devolve isso ao modelo e segue.
+            if decisao == "M":
+                # O grupo recusa finalizar e IMPÕE a próxima ação (ferramenta + parâmetros).
+                nome = input(f"  Ferramenta a forçar ({', '.join(ferramentas)}) > ").strip()
+                if nome in ferramentas:
+                    params_forcados = editar_parametros({})
+                    registro["parametros_propostos"] = None  # a ação é do grupo, não do modelo
+                    registro["conclusao_modelo_recusada"] = proposta.get("conclusao")
+                    mensagens += executar_ferramenta(ferramentas[nome], params_forcados, "M", registro,
+                                                      resultado.resposta_bruta, reg, turno, max_chars)
+                    continue
+                print("  Ferramenta inválida; tratando como rejeição.")
+            # R (ou M inválido): o grupo não quer finalizar; devolve o motivo ao modelo.
             motivo = input("  Por que não finalizar? (vai para o modelo) > ").strip()
             registro.update({"decisao_humana": "REJEITADO", "motivo_decisao": motivo or "continuar investigando"})
             reg.registrar(registro)
@@ -193,56 +269,10 @@ def main() -> None:
         if decisao == "M":
             parametros = editar_parametros(parametros)
 
-        # Execução, com a trava de escopo dentro do wrapper.
-        registro.update({
-            "ferramenta_proposta": ferramenta.nome, "parametros_propostos": proposta.get("parametros"),
-            "decisao_humana": "MODIFICADO" if decisao == "M" else "AUTORIZADO",
-            "parametros_executados": parametros,
-        })
-        try:
-            res = ferramenta.executar(parametros)
-        except (ForaDeEscopo, ParametrosInvalidos) as e:
-            print(f"  BLOQUEADO pela trava de escopo: {e}")
-            registro.update({"bloqueio_escopo": str(e), "tags": ["fora_escopo"]})
-            reg.registrar(registro)
-            mensagens += [
-                {"role": "assistant", "content": resultado.resposta_bruta},
-                {"role": "user", "content":
-                    f"A ação foi bloqueada pela política de escopo: {e}. Proponha uma ação dentro do alvo."},
-            ]
-            continue
-        except Exception as e:  # falha de rede, timeout etc.
-            print(f"  ERRO ao executar: {e}")
-            registro.update({"erro_execucao": str(e), "tags": ["erro_execucao"]})
-            reg.registrar(registro)
-            mensagens += [
-                {"role": "assistant", "content": resultado.resposta_bruta},
-                {"role": "user", "content": f"A ferramenta falhou: {e}. Proponha outra ação."},
-            ]
-            continue
-
-        # Saída completa em arquivo (com hash); resumo truncado ao modelo.
-        caminho_raw, sha = reg.salvar_saida_bruta(turno, res.saida)
-        print("  Resultado (início):")
-        print(textwrap.indent(resumir(res.saida, 1200), "    "))
-
-        # Decisão do grupo após ver o resultado (só para o log; NÃO vai para a IA).
-        # Enter grava "seguir"; texto só quando a decisão foge do óbvio.
-        decisao_pos = input("\n  Decisão do grupo (Enter = seguir) > ").strip()
-        registro.update({
-            "saida_resumo": resumir(res.saida, max_chars),
-            "saida_arquivo": caminho_raw, "saida_sha256": sha,
-            "parametros_executados": res.parametros_executados,
-            "decisao_grupo_pos_resultado": decisao_pos or "seguir",
-        })
-        reg.registrar(registro)
-
-        mensagens += [
-            {"role": "assistant", "content": resultado.resposta_bruta},
-            {"role": "user", "content":
-                f"Resultado da ferramenta {ferramenta.nome}:\n{resumir(res.saida, max_chars)}\n\n"
-                "Interprete o resultado e proponha a próxima ação, ou finalize se já for suficiente."},
-        ]
+        # Execução, com a trava de escopo dentro do wrapper (função compartilhada).
+        registro["parametros_propostos"] = proposta.get("parametros")
+        mensagens += executar_ferramenta(ferramenta, parametros, decisao, registro,
+                                         resultado.resposta_bruta, reg, turno, max_chars)
     else:
         print(f"\nLimite de {max_turnos} turnos atingido. Investigação encerrada.")
 
@@ -250,4 +280,7 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except KeyboardInterrupt:
+        print("\n\nInterrompido pelo operador. Os turnos já registrados foram salvos no log.")
