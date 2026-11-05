@@ -3,8 +3,8 @@
 > O plano do grupo (`plano_testes_grupo.md`) foi enviado ao Qwen3 4B **depois** de registrado,
 > pela integração do agente (`agent/revisar_plano.py`), ficando a resposta salva em log.
 
-**Commit/push do plano original:** hash `________`, horário `________` _(preencher com `git log` do commit do plano)_
-**Log da revisão:** `logs/revisao_llm_20261105_1334.txt`
+**Commit/push do plano original:** hash `a5feb317bd2bca4bb65901a3ba37dfba2e4a246a`, horário `2026-11-05 13:07:05 -03:00` ("Plano de testes do grupo: hipoteses I1, I2, I3")
+**Log da revisão:** `logs/revisao_llm_20261105_1334.txt` (revisão às 13:34 — **depois** do commit do plano, comprovando a ordem exigida)
 
 ## Observações gerais sobre a revisão
 - O modelo leu o plano e fez críticas **específicas** ao nosso caso (citou `/rest/basket/<id>`, o HTML cru nas descrições, o XSS refletido na busca), não genéricas. Bom sinal de uso de contexto.
