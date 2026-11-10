@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="680" height="400" viewBox="0 0 680 400" font-family="Segoe UI, Arial, sans-serif" role="img">
+<title>Arquitetura do laboratório</title>
+<desc>O notebook do grupo acessa, por VPN e SSH, o servidor do kit (discorder, 10.0.80.3), que contém o Juice Shop, o Ollama com Qwen3 4B e o agente, todos em 127.0.0.1.</desc>
+<defs>
+<marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="#5F5E5A" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker>
+</defs>
+<rect x="0" y="0" width="680" height="400" fill="#ffffff"/>
+
+<rect x="40" y="150" width="150" height="70" rx="8" fill="#F1EFE8" stroke="#5F5E5A" stroke-width="0.5"/>
+<text x="115" y="183" text-anchor="middle" font-size="14" font-weight="500" fill="#2C2C2A">Notebook do grupo</text>
+<text x="115" y="202" text-anchor="middle" font-size="12" fill="#5F5E5A">VPN + SSH</text>
+
+<line x1="192" y1="185" x2="236" y2="185" stroke="#5F5E5A" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+<rect x="240" y="44" width="400" height="312" rx="20" fill="#F1EFE8" stroke="#5F5E5A" stroke-width="0.5"/>
+<text x="265" y="77" font-size="14" font-weight="500" fill="#2C2C2A">discorder — servidor do kit</text>
+<text x="265" y="96" font-size="12" fill="#5F5E5A">10.0.80.3 · tudo só em 127.0.0.1 (isolado da rede)</text>
+
+<rect x="266" y="116" width="348" height="58" rx="10" fill="#FAECE7" stroke="#993C1D" stroke-width="0.5"/>
+<text x="440" y="143" text-anchor="middle" font-size="14" font-weight="500" fill="#712B13">OWASP Juice Shop</text>
+<text x="440" y="162" text-anchor="middle" font-size="12" fill="#993C1D">alvo · porta 3000</text>
+
+<rect x="266" y="190" width="348" height="58" rx="10" fill="#EEEDFE" stroke="#534AB7" stroke-width="0.5"/>
+<text x="440" y="217" text-anchor="middle" font-size="14" font-weight="500" fill="#3C3489">Ollama + Qwen3 4B</text>
+<text x="440" y="236" text-anchor="middle" font-size="12" fill="#534AB7">LLM local · porta 11434</text>
+
+<rect x="266" y="264" width="348" height="70" rx="10" fill="#E1F5EE" stroke="#0F6E56" stroke-width="0.5"/>
+<text x="440" y="293" text-anchor="middle" font-size="14" font-weight="500" fill="#085041">Agente supervisionado (Python)</text>
+<text x="440" y="315" text-anchor="middle" font-size="12" fill="#0F6E56">login · http_request · dir_enum</text>
+</svg>
