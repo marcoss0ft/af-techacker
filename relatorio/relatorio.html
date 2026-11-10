@@ -1,0 +1,226 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Relatório técnico — Testes ofensivos com apoio de IA</title>
+<style>
+  @page { size: A4; margin: 2cm 2cm; }
+  * { box-sizing: border-box; }
+  body { font-family: "Calibri","Segoe UI",Arial,sans-serif; font-size: 10.6pt; line-height: 1.42; color:#1a1a1a; margin:0; }
+  h1 { font-size: 17pt; margin:0 0 2px; }
+  h2 { font-size: 12.5pt; margin:16px 0 5px; border-bottom:1.5px solid #333; padding-bottom:2px; }
+  h3 { font-size: 11pt; margin:11px 0 3px; color:#222; }
+  p { margin:5px 0; text-align: justify; }
+  ul { margin:4px 0 6px; padding-left:18px; }
+  li { margin:2px 0; }
+  .meta { color:#444; font-size:9.6pt; margin:2px 0 0; }
+  .lead { color:#333; }
+  code, .mono { font-family:"Consolas",monospace; font-size:9.4pt; background:#f1f1f1; padding:0 3px; border-radius:3px; }
+  table { border-collapse:collapse; width:100%; margin:6px 0; font-size:9.6pt; }
+  th,td { border:1px solid #bbb; padding:4px 7px; text-align:left; vertical-align:top; }
+  th { background:#efefef; }
+  .tag { display:inline-block; font-size:8.6pt; font-weight:600; padding:1px 7px; border-radius:9px; }
+  .ok { background:#e5f5e8; color:#1d7a33; border:1px solid #9fd8ac; }
+  .warn { background:#fdf0dd; color:#8a5a08; border:1px solid #f0cd8f; }
+  header { border-bottom:2px solid #222; padding-bottom:8px; margin-bottom:6px; }
+  .small { font-size:9.4pt; color:#555; }
+  h2 { page-break-after: avoid; }
+  table, h3 { page-break-inside: avoid; }
+  figure { margin:9px 0; text-align:center; page-break-inside: avoid; }
+  figure img { max-width:88%; max-height:230px; border:1px solid #ccc; }
+  figure svg { max-width:94%; height:auto; }
+  figcaption { font-size:9pt; color:#555; margin-top:3px; text-align:center; }
+  pre { background:#f5f5f5; border:1px solid #ddd; border-radius:4px; padding:7px 9px; font-family:"Consolas",monospace; font-size:8.6pt; line-height:1.35; white-space:pre-wrap; word-break:break-word; margin:6px 0; }
+  .cap { font-size:8.8pt; color:#555; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Testes de segurança ofensivos com apoio de IA</h1>
+  <p class="meta">Avaliação Final · Tecnologias Hackers · Prof. Rodolfo Avelino · Insper</p>
+  <p class="meta">Grupo 7 — Vinicius Dib e Marcos Costa · Alvo: OWASP Juice Shop · Modelo local: Qwen3 4B (Ollama)</p>
+</header>
+
+<h2>1. Introdução, escopo e ética</h2>
+<p class="lead">Este relatório descreve o desenvolvimento de um <strong>agente supervisionado</strong> que integra um
+modelo de linguagem local (Qwen3 4B, via Ollama) a um conjunto limitado de ferramentas de segurança, usado
+para investigar a aplicação propositalmente vulnerável OWASP Juice Shop. O objetivo não foi identificar o
+maior número de vulnerabilidades, mas <strong>avaliar em que situações a IA contribui, onde falha e quando a
+intervenção humana permanece necessária</strong>.</p>
+<p>Todos os testes ficaram restritos a uma instância local do Juice Shop, rodando no servidor do kit de
+laboratório da disciplina. O alvo e o modelo ficam acessíveis apenas em <code>127.0.0.1</code>; nenhum serviço
+externo ou de outro grupo foi alvo. O isolamento foi verificado objetivamente (ver seção 2). Toda conclusão
+apresentada remete a evidências registradas em log; <strong>uma sugestão do modelo, por si só, não foi tratada
+como evidência de vulnerabilidade</strong>.</p>
+
+<h2>2. Arquitetura do laboratório e do agente</h2>
+<p>O ambiente roda inteiramente no servidor do kit (<code>discorder</code>, Ubuntu 24.04, 10.0.80.3). O Juice
+Shop (Docker, imagem de tag fixa) e o Ollama escutam só em <code>127.0.0.1</code>; o grupo acessa por VPN + SSH,
+e inspeciona a aplicação no navegador por um túnel SSH. Essa topologia garante que o alvo (deliberadamente
+vulnerável) e o LLM (sem autenticação) não fiquem expostos na rede compartilhada.</p>
+<p><strong>Isolamento verificado:</strong> do notebook, pela VPN, as portas do Juice Shop (3000) e do Ollama
+(11434) recusam conexão; apenas pelo túnel SSH o alvo responde. Um serviço de controle (o WordPress do kit)
+respondendo no mesmo teste confirma que a VPN estava ativa — isto é, o bloqueio é do alvo, não da rede.
+Há ainda um procedimento de <strong>restauração</strong> que recria o container e confirma o estado inicial
+(zero desafios resolvidos) antes de cada investigação.</p>
+<p><strong>O agente</strong> é um programa em Python que executa o ciclo: recebe um objetivo → o modelo propõe
+uma ação (ferramenta + parâmetros + justificativa) → o grupo <em>autoriza, modifica, rejeita ou finaliza</em>
+→ a ferramenta roda sob uma trava de escopo → o resultado volta ao modelo. Cada passo é gravado em JSONL.
+Três ferramentas foram integradas:</p>
+<ul>
+  <li><code>login</code> — autentica com a conta de teste e guarda o token da sessão;</li>
+  <li><code>http_request</code> — faz requisições ao Juice Shop (interage diretamente com o alvo);</li>
+  <li><code>dir_enum</code> — testa uma lista pré-definida de caminhos, comparando cada resposta com uma
+  linha de base para evitar os falsos positivos de uma SPA (que devolve 200 para quase qualquer rota).</li>
+</ul>
+<figure>
+<svg xmlns="http://www.w3.org/2000/svg" width="560" viewBox="0 0 680 400" font-family="Calibri,Segoe UI,Arial,sans-serif">
+<defs><marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="#5F5E5A" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker></defs>
+<rect x="40" y="150" width="150" height="70" rx="8" fill="#F1EFE8" stroke="#5F5E5A" stroke-width="0.5"/>
+<text x="115" y="183" text-anchor="middle" font-size="14" font-weight="600" fill="#2C2C2A">Notebook do grupo</text>
+<text x="115" y="202" text-anchor="middle" font-size="12" fill="#5F5E5A">VPN + SSH</text>
+<line x1="192" y1="185" x2="236" y2="185" stroke="#5F5E5A" stroke-width="1.5" marker-end="url(#arrow)"/>
+<rect x="240" y="44" width="400" height="312" rx="20" fill="#F1EFE8" stroke="#5F5E5A" stroke-width="0.5"/>
+<text x="265" y="77" font-size="14" font-weight="600" fill="#2C2C2A">discorder — servidor do kit</text>
+<text x="265" y="96" font-size="12" fill="#5F5E5A">10.0.80.3 · tudo só em 127.0.0.1 (isolado da rede)</text>
+<rect x="266" y="116" width="348" height="58" rx="10" fill="#FAECE7" stroke="#993C1D" stroke-width="0.5"/>
+<text x="440" y="143" text-anchor="middle" font-size="14" font-weight="600" fill="#712B13">OWASP Juice Shop</text>
+<text x="440" y="162" text-anchor="middle" font-size="12" fill="#993C1D">alvo · porta 3000</text>
+<rect x="266" y="190" width="348" height="58" rx="10" fill="#EEEDFE" stroke="#534AB7" stroke-width="0.5"/>
+<text x="440" y="217" text-anchor="middle" font-size="14" font-weight="600" fill="#3C3489">Ollama + Qwen3 4B</text>
+<text x="440" y="236" text-anchor="middle" font-size="12" fill="#534AB7">LLM local · porta 11434</text>
+<rect x="266" y="264" width="348" height="70" rx="10" fill="#E1F5EE" stroke="#0F6E56" stroke-width="0.5"/>
+<text x="440" y="293" text-anchor="middle" font-size="14" font-weight="600" fill="#085041">Agente supervisionado (Python)</text>
+<text x="440" y="315" text-anchor="middle" font-size="12" fill="#0F6E56">login · http_request · dir_enum</text>
+</svg>
+<figcaption>Figura 1 — Arquitetura: o alvo, o modelo e o agente rodam no servidor do kit, acessíveis só em
+<code>127.0.0.1</code>. O grupo acessa por VPN + SSH; nada fica exposto na rede.</figcaption>
+</figure>
+<p><strong>Limites aplicados às ações</strong> (requisito do enunciado e decisão de projeto): a trava de escopo
+fica <em>no código das ferramentas</em>, não apenas no prompt — o alvo e as portas vêm de um arquivo de
+configuração, e qualquer pedido para outro host/porta é recusado e registrado. O modelo não tem shell livre,
+e há teto de turnos e de tamanho de resposta. Um conjunto de 16 testes automáticos verifica a trava de escopo.</p>
+
+<h2>3. Estratégia de testes</h2>
+<p>O planejamento foi feito primeiro <strong>sem o apoio do LLM</strong>, a partir de uma exploração manual da
+aplicação (navegador + DevTools), e registrado no repositório antes de qualquer contato com o modelo (a data
+do commit comprova a ordem). Foram definidas três investigações, uma por tema sugerido no enunciado:</p>
+<table>
+  <tr><th>Investigação</th><th>Hipótese</th><th>Ferramenta principal</th></tr>
+  <tr><td>I1 — Reconhecimento</td><td>Existem rotas/recursos que funcionam fora dos menus</td><td>dir_enum</td></tr>
+  <tr><td>I2 — Autorização (IDOR)</td><td>O servidor entrega um recurso pelo id sem checar o dono</td><td>http_request</td></tr>
+  <tr><td>I3 — Tratamento de entradas</td><td>A busca reflete a entrada sem tratar HTML (XSS refletido)</td><td>http_request</td></tr>
+</table>
+<p>Depois de registrado, o plano foi submetido ao próprio Qwen para revisão (Fase 3b). O modelo sugeriu, entre
+outros, ampliar o IDOR a um segundo recurso e investigar XSS armazenado. O grupo <strong>aceitou</strong>
+ampliar o IDOR (para verificar se a falha é um padrão) e <strong>rejeitou</strong>, com justificativa, o uso de
+scanners automáticos (fogem da proposta de agente supervisionado) e a troca do XSS refletido pelo armazenado
+(o refletido foi mantido de propósito, por expor um limite do agente — ver seção 5).</p>
+
+<h2>4. Resultados das investigações</h2>
+<table>
+  <tr><th>Invest.</th><th>Evidência (do log)</th><th>Veredito</th><th>Papel da IA</th></tr>
+  <tr><td>I1</td><td>Endpoints fora do menu (ex.: <code>/rest/admin/application-configuration</code> expôs a config interna)</td><td>Confirmada</td><td>Útil (enumerou sozinha)</td></tr>
+  <tr><td>I2</td><td>Como <code>UserId 25</code>, <code>/rest/basket/1</code> trouxe o carrinho do <code>UserId 1</code>; <code>/api/Addresss/1</code> deu 400 (protegido)</td><td>Confirmada</td><td>Útil, com supervisão</td></tr>
+  <tr><td>I3</td><td>Busca <code>apple&lt;b&gt;x&lt;/b&gt;</code> renderizou o <code>x</code> em negrito (XSS na tela)</td><td>Confirmada (na tela)</td><td>Pouco útil (cega à falha)</td></tr>
+</table>
+
+<h3>I1 — Reconhecimento e enumeração <span class="tag ok">confirmada</span></h3>
+<p>Recebendo apenas o objetivo, o agente escolheu sozinho a <code>dir_enum</code> e, a partir dos resultados,
+decidiu inspecionar um achado com <code>http_request</code>. A enumeração revelou endpoints que respondem de
+forma distinta da página-padrão da SPA e não aparecem em menu: <code>/ftp</code>, <code>/metrics</code> e,
+sobretudo, <code>/rest/admin/application-configuration</code>, que retornou a <strong>configuração interna da
+aplicação</strong> (domínio, parâmetros do servidor, do chatbot, de backup). Soma-se o reconhecimento manual:
+<code>/#/score-board</code> acessível e <code>/#/administration</code> com 403, ambos fora do menu. A hipótese
+se confirma. A comparação com uma linha de base foi decisiva para separar achados reais dos 200 genéricos da
+SPA. Intervenção humana pontual: o modelo chegou a atribuir um resultado ao caminho errado, corrigido pelo grupo.</p>
+<figure>
+<img src="../planejamento/prints/score_board_aberto.png" alt="Score Board acessível pela URL">
+<figcaption>Figura 2 — O <code>/#/score-board</code> aberto direto pela URL (sem link no menu): a página do
+placar existe e responde. Evidência manual que complementa a enumeração automática do agente.</figcaption>
+</figure>
+
+<h3>I2 — Autorização: IDOR <span class="tag ok">confirmada (carrinho)</span></h3>
+<p>O agente propôs <code>login</code> por conta própria e fez o raciocínio central sozinho: "meu carrinho é o
+<code>/rest/basket/6</code>; vou pedir um id diferente". Autenticados como <code>UserId 25</code>, a requisição
+<code>GET /rest/basket/1</code> retornou o carrinho de <code>UserId 1</code> — dados de outro usuário. O servidor
+não verifica a propriedade do recurso: <strong>IDOR confirmado</strong>. Ampliando para um segundo recurso,
+<code>GET /api/Addresss/1</code> retornou <code>HTTP 400 "Malicious activity detected"</code>: esse endpoint tem
+proteção. Portanto, <strong>o IDOR não é uniforme na aplicação</strong> — alguns recursos vazam (carrinho),
+outros são barrados (endereços), conclusão mais rica do que "tudo vaza". A supervisão foi necessária em dois
+momentos: para obter a evidência de qualidade (o modelo quis concluir a partir de um carrinho vazio) e para
+levar a investigação ao segundo recurso (o modelo não o fez sozinho — ver seção 5).</p>
+<p class="cap">Trecho do log (a resposta real que sustenta a conclusão):</p>
+<pre>GET /rest/basket/1  →  HTTP 200
+{"status":"success","data":{"id":1,"UserId":1,
+ "Products":[{"name":"Apple Juice (1000ml)", ...}]}}
+# nosso UserId e 25; o carrinho 1 pertence ao UserId 1 -> acesso indevido (IDOR)</pre>
+
+<h3>I3 — Tratamento de entradas: XSS refletido <span class="tag ok">confirmada (na tela)</span></h3>
+<p>A busca por <code>apple&lt;b&gt;x&lt;/b&gt;</code> renderizou, no título dos resultados, o <code>x</code> em
+negrito, com as tags consumidas como marcação — evidência de XSS refletido, confirmada no navegador. O ponto
+central desta investigação é um <strong>limite estrutural do agente</strong>: a requisição de API
+(<code>/rest/products/search</code>) não reflete o termo na resposta crua, e o <code>http_request</code> só
+enxerga essa resposta. Logo, <strong>o agente não detecta esta classe de falha</strong>, que vive na
+renderização da página; a confirmação dependeu inteiramente do humano no navegador. O agente ainda propôs,
+repetidamente, uma rota de front-end (<code>/#/products</code>) como se fosse um endpoint de servidor.</p>
+<figure>
+<img src="../planejamento/prints/i3_xss_tela.png" alt="XSS refletido na busca">
+<figcaption>Figura 3 — A busca por <code>apple&lt;b&gt;x&lt;/b&gt;</code> renderiza o <code>x</code> em negrito no
+título "Search Results": o navegador interpretou a marcação como código. A falha está na renderização, que o
+agente (limitado à resposta crua) não enxerga — a confirmação foi humana.</figcaption>
+</figure>
+
+<h2>5. Análise crítica da contribuição da IA</h2>
+<p><strong>Sugestões adequadas e seleção de ferramentas.</strong> O modelo foi tecnicamente competente em
+tarefas de reconhecimento e no raciocínio de "trocar um identificador": escolheu <code>dir_enum</code> na I1
+e <code>login</code> + <code>http_request</code> na I2, de forma coerente com os objetivos. Na I3 a seleção
+falhou (confundiu rota de tela com endpoint de API).</p>
+<p><strong>Uso dos resultados.</strong> A cadeia "resultado → próxima ação" funcionou em passos simples (o
+resultado da enumeração guiou a inspeção; o id do carrinho guiou o teste de IDOR), mas <strong>falhou quando o
+passo exigia corrigir uma ideia já fixada</strong>: em vários turnos o modelo ignorou o resultado novo e
+repetiu a proposta anterior.</p>
+<p><strong>Interpretações incorretas e conclusões sem evidência.</strong> Esta foi a limitação mais relevante.
+Exemplo concreto: na I2, o modelo quis <em>finalizar afirmando IDOR</em> a partir de <code>/rest/basket/7</code>,
+que havia retornado <code>data: null</code> (vazio) — uma conclusão confiante e falsa. O grupo detectou ao
+comparar a afirmação com a resposta real no log (não havia carrinho) e lidou com isso forçando
+<code>/rest/basket/1</code>, que trouxe a evidência verdadeira. A lição confirma a premissa do enunciado: a
+saída de um LLM pequeno pode ser, ao mesmo tempo, confiante e incorreta.</p>
+<p><strong>Ações repetitivas.</strong> Em I2 e I3 o modelo repetiu propostas idênticas por vários turnos,
+inclusive após rejeição com orientação; o agente dispõe de um detector de repetição que sinalizou cada caso.
+Na I2, mesmo instruído a testar um recurso diferente do carrinho, repetiu o carrinho — foi preciso
+<em>impor</em> o segundo recurso. Este teste foi feito com a integração já corrigida (ver nota abaixo), de modo
+que a repetição é atribuível ao <strong>modelo</strong>, não à ferramenta.</p>
+<p><strong>Intervenção humana.</strong> Foi necessária nas três investigações, de três formas: elevar a
+qualidade da evidência (I2), dar direção quando o modelo travou (I2, I3) e confirmar o que o agente não
+enxerga (I3, no navegador).</p>
+<p><strong>Comparação plano do grupo × agente.</strong> Recebendo só o objetivo, o agente re-derivou sozinho,
+na I1 e na I2, uma abordagem muito próxima da planejada pelo grupo — o que <em>valida</em> o plano, mas também
+mostra que, nesses casos, o agente <strong>acrescenta pouco além do que o grupo já havia pensado</strong>; seu
+ganho é velocidade no trabalho repetitivo, não ideias novas. Na I3 ele divergiu para pior. A previsão feita
+pelo grupo antes dos testes (bom desempenho na I2, fraco na I3) confirmou-se.</p>
+<p class="small"><strong>Nota de honestidade (integração).</strong> Duas falhas da <em>ferramenta</em> foram
+descobertas e corrigidas durante o trabalho, para não contaminar as conclusões sobre o modelo: (i) o agente não
+permitia "Modificar" uma proposta de finalização, o que, numa primeira tentativa de I2, impediu de impor o
+segundo recurso; (ii) usávamos um <em>seed</em> fixo, que tornava a saída quase determinística e agravava os
+loops. Ambas foram corrigidas, e os episódios de repetição analisados acima foram observados depois disso, num
+teste limpo. Reconhecer que parte do que parecia "limitação da IA" era limitação da nossa integração faz parte
+da própria análise crítica.</p>
+
+<h2>6. Conclusão e limitações</h2>
+<p>O agente supervisionado participou das decisões técnicas de forma desigual: <strong>útil</strong> no
+reconhecimento (I1), <strong>útil com supervisão</strong> no IDOR (I2) e <strong>pouco útil</strong> no XSS
+refletido (I3), onde um limite estrutural o impede de ver a falha. Em todas as investigações, a supervisão
+humana foi decisiva — para validar evidências, redirecionar o modelo e confirmar o que ele não enxerga. As
+três investigações resultaram em conclusões sustentadas por evidência de log, incluindo um resultado de nuance
+(o IDOR que vale no carrinho, mas é barrado nos endereços).</p>
+<p>As principais limitações observadas no <strong>modelo</strong> foram: alucinação/confusão de endpoints,
+conclusões sem evidência suficiente, fixação em propostas (loops) e não incorporação de feedback. Na
+<strong>integração</strong>: o agente só observa a resposta crua (não a renderização) e não informa ao modelo
+quando uma ação foi modificada pelo grupo. O trabalho confirma que, com um modelo local de 4B, o valor está em
+um fluxo <em>supervisionado</em> — a IA acelera e sugere, mas a condução, a validação e a responsabilidade pelos
+experimentos permanecem com os estudantes.</p>
+
+</body>
+</html>
