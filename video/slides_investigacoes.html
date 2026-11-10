@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Investigações — AF Tecnologias Hackers</title>
+<style>
+  :root{
+    --bg:#0f1720; --card:#17212b; --line:#27333f; --ink:#e8eef3; --mut:#9fb0bf;
+    --teal:#2dd4a7; --green:#56d364; --amber:#f0b429; --coral:#f07a52; --blue:#5aa8f0;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%}
+  body{
+    background:var(--bg); color:var(--ink);
+    font-family:"Segoe UI",system-ui,Arial,sans-serif;
+    display:flex; align-items:center; justify-content:center; overflow:hidden;
+  }
+  .deck{width:min(1100px,94vw); height:min(620px,90vh); position:relative}
+  .slide{
+    position:absolute; inset:0; opacity:0; transform:translateY(8px);
+    transition:opacity .25s, transform .25s; pointer-events:none;
+    display:flex; flex-direction:column; padding:44px 52px;
+  }
+  .slide.on{opacity:1; transform:none; pointer-events:auto}
+  .tag{display:inline-flex; align-items:center; gap:10px; font-size:15px; color:var(--mut); letter-spacing:.5px}
+  .tag b{color:var(--ink); font-weight:600}
+  .chip{font-size:13px; padding:3px 10px; border-radius:999px; border:1px solid var(--line); color:var(--mut)}
+  h1{font-size:34px; font-weight:600; margin:14px 0 2px}
+  .sub{font-size:17px; color:var(--mut); margin:0 0 22px}
+  .grid{display:grid; grid-template-columns:1fr 1fr; gap:16px; flex:1}
+  .box{background:var(--card); border:1px solid var(--line); border-radius:14px; padding:20px 22px}
+  .box h2{font-size:14px; font-weight:600; text-transform:uppercase; letter-spacing:1px; color:var(--mut); margin:0 0 10px}
+  .box p{margin:0; font-size:17px; line-height:1.5}
+  .box .accent{color:var(--teal)}
+  .verdict{display:inline-flex; align-items:center; gap:8px; font-size:15px; font-weight:600; padding:6px 14px; border-radius:999px}
+  .v-ok{background:rgba(86,211,100,.14); color:var(--green); border:1px solid rgba(86,211,100,.35)}
+  .ai{display:flex; gap:14px; margin-top:4px}
+  .ai .col{flex:1}
+  .ai .col h3{margin:0 0 6px; font-size:13px; letter-spacing:.5px; text-transform:uppercase}
+  .up h3{color:var(--green)} .down h3{color:var(--coral)}
+  .ai .col p{margin:0; font-size:15px; color:var(--ink); line-height:1.45}
+  .foot{position:absolute; left:52px; right:52px; bottom:22px; display:flex; align-items:center; justify-content:space-between; color:var(--mut); font-size:14px}
+  .dots{display:flex; gap:8px}
+  .dot{width:9px; height:9px; border-radius:50%; background:var(--line); cursor:pointer}
+  .dot.on{background:var(--teal)}
+  .hint{font-size:13px}
+  .scale{display:flex; gap:10px; align-items:stretch}
+  .scale .s{flex:1; background:var(--card); border:1px solid var(--line); border-radius:14px; padding:18px 20px}
+  .scale .s .lbl{font-size:13px; color:var(--mut); text-transform:uppercase; letter-spacing:1px}
+  .scale .s .big{font-size:22px; font-weight:600; margin:6px 0}
+  .bar{height:6px; border-radius:3px; margin-top:12px}
+  kbd{background:var(--card); border:1px solid var(--line); border-radius:6px; padding:1px 7px; font-size:13px}
+</style>
+</head>
+<body>
+<div class="deck" id="deck">
+
+  <section class="slide on">
+    <div class="tag"><span class="chip">I1</span><b>Reconhecimento e enumeração</b></div>
+    <h1>Rotas e recursos fora dos menus</h1>
+    <p class="sub">A aplicação expõe páginas e endpoints que funcionam mas não aparecem em menu nenhum?</p>
+    <div class="grid">
+      <div class="box">
+        <h2>Evidência</h2>
+        <p>A <span class="accent">dir_enum</span> achou <b>/ftp</b>, <b>/metrics</b> e
+        <b>/rest/admin/application-configuration</b> (configuração interna exposta). No recon manual,
+        <b>/score-board</b> e <b>/administration</b> fora do menu.</p>
+        <p style="margin-top:14px"><span class="verdict v-ok">✓ Confirmada</span></p>
+      </div>
+      <div class="box ai">
+        <div class="col up"><h3>Onde a IA ajudou</h3><p>Escolheu a ferramenta certa sozinha e aprofundou num achado real.</p></div>
+        <div class="col down"><h3>Onde falhou</h3><p>Atribuiu um resultado ao caminho errado e repetiu propostas. A supervisão corrigiu.</p></div>
+      </div>
+    </div>
+    <div class="foot"><div class="dots"></div><div class="hint">← → para navegar</div></div>
+  </section>
+
+  <section class="slide">
+    <div class="tag"><span class="chip">I2</span><b>Autenticação e autorização</b></div>
+    <h1>Acessar o carrinho de outro usuário (IDOR)</h1>
+    <p class="sub">O servidor entrega um recurso pelo id, sem checar se ele é seu?</p>
+    <div class="grid">
+      <div class="box">
+        <h2>Evidência</h2>
+        <p>Como <b>UserId 25</b>, <span class="accent">GET /rest/basket/1</span> trouxe o carrinho do
+        <b>UserId 1</b> — IDOR confirmado. Já <span class="accent">/api/Addresss/1</span> deu
+        <b>400 "Malicious activity"</b>: o IDOR não é uniforme.</p>
+        <p style="margin-top:14px"><span class="verdict v-ok">✓ Confirmada (carrinho)</span></p>
+      </div>
+      <div class="box ai">
+        <div class="col up"><h3>Onde a IA ajudou</h3><p>Fez o pulo lógico do IDOR sozinha: "meu carrinho é o 6, vou pedir outro id".</p></div>
+        <div class="col down"><h3>Onde falhou</h3><p>Concluiu de um carrinho vazio; não foi ao 2º recurso nem com rejeição e orientação. O grupo corrigiu e forçou.</p></div>
+      </div>
+    </div>
+    <div class="foot"><div class="dots"></div><div class="hint">← → para navegar</div></div>
+  </section>
+
+  <section class="slide">
+    <div class="tag"><span class="chip">I3</span><b>Tratamento de entradas</b></div>
+    <h1>XSS refletido na busca</h1>
+    <p class="sub">A busca devolve o que você digita sem tratar o HTML, deixando o navegador executá-lo?</p>
+    <div class="grid">
+      <div class="box">
+        <h2>Evidência</h2>
+        <p>No navegador, buscar <span class="accent">apple&lt;b&gt;x&lt;/b&gt;</span> renderizou o
+        <b>x em negrito</b> — as tags foram interpretadas como código, não mostradas como texto.</p>
+        <p style="margin-top:14px"><span class="verdict v-ok">✓ Confirmada (na tela)</span></p>
+      </div>
+      <div class="box ai">
+        <div class="col up"><h3>Onde a IA ajudou</h3><p>Pouco: enviou a busca, mas a resposta de API não reflete o termo.</p></div>
+        <div class="col down"><h3>Onde falhou</h3><p>Não detectou o XSS: só vê a resposta crua, e a falha está na tela. Confirmação foi humana.</p></div>
+      </div>
+    </div>
+    <div class="foot"><div class="dots"></div><div class="hint">← → para navegar</div></div>
+  </section>
+
+  <section class="slide">
+    <div class="tag"><b>Síntese</b></div>
+    <h1>Quanto a IA contribuiu, por investigação</h1>
+    <p class="sub">O valor do trabalho está no contraste entre as três.</p>
+    <div class="scale">
+      <div class="s"><div class="lbl">I1 · Reconhecimento</div><div class="big">Útil</div>
+        <p style="margin:0;color:var(--mut);font-size:14px">Enumerou bem; supervisão pontual.</p>
+        <div class="bar" style="background:var(--green)"></div></div>
+      <div class="s"><div class="lbl">I2 · IDOR</div><div class="big">Útil com supervisão</div>
+        <p style="margin:0;color:var(--mut);font-size:14px">Bom raciocínio; evidência veio da supervisão.</p>
+        <div class="bar" style="background:var(--amber)"></div></div>
+      <div class="s"><div class="lbl">I3 · XSS</div><div class="big">Pouco útil</div>
+        <p style="margin:0;color:var(--mut);font-size:14px">Cega para a falha; humano confirmou.</p>
+        <div class="bar" style="background:var(--coral)"></div></div>
+    </div>
+    <div class="foot"><div class="dots"></div><div class="hint">o humano foi necessário nas três</div></div>
+  </section>
+
+</div>
+<script>
+  const slides=[...document.querySelectorAll('.slide')];
+  let i=0;
+  const dotsRow=()=>slides.map((_,k)=>`<span class="dot ${k===i?'on':''}" data-k="${k}"></span>`).join('');
+  function render(){
+    slides.forEach((s,k)=>s.classList.toggle('on',k===i));
+    document.querySelectorAll('.dots').forEach(d=>d.innerHTML=dotsRow());
+  }
+  function go(n){ i=Math.max(0,Math.min(slides.length-1,n)); render(); }
+  document.addEventListener('keydown',e=>{
+    if(e.key==='ArrowRight'||e.key===' ') go(i+1);
+    if(e.key==='ArrowLeft') go(i-1);
+  });
+  document.addEventListener('click',e=>{
+    const d=e.target.closest('.dot'); if(d) go(+d.dataset.k);
+  });
+  render();
+</script>
+</body>
+</html>
