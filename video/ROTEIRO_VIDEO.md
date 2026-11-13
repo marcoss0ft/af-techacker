@@ -1,56 +1,68 @@
-# Roteiro do vídeo (até 10 minutos)
+# Roteiro do vídeo — versão mínima (nota máxima, sem excesso)
 
-> Objetivo do vídeo (enunciado): demonstrar o funcionamento do agente e apresentar **pelo menos uma
-> investigação completa**, da hipótese à conclusão, destacando as decisões do modelo e as
-> intervenções do grupo.
+O enunciado exige só isto no vídeo (até 10 min):
+1. demonstrar o **funcionamento do agente**;
+2. **uma investigação completa**, da hipótese à conclusão;
+3. destacar as **decisões do modelo** e as **intervenções do grupo**;
+4. duração **≤ 10 minutos**.
 
-**A investigação completa que vamos mostrar ao vivo: I2 (IDOR no carrinho)** — é a melhor para o
-vídeo, porque a IA faz o pulo lógico, e o grupo intervém (rejeita, modifica, força). Mostra as duas
-coisas que valem nota: o agente contribuindo e a supervisão agindo.
+A gravação da **I2 (IDOR)** que já temos cobre os quatro. Este roteiro usa essa gravação, com uma
+abertura e um fecho curtos. Alvo de duração: **5 a 7 minutos**.
 
-**Antes de gravar:**
-- Lab no ar; Juice Shop fechado no navegador antes do restore.
-- Ter abertas: 1 janela com o terminal do agente, 1 com o diagrama da arquitetura, 1 com o navegador (para a parte visual, se citar a I3).
-- A IA é lenta (CPU). **Grave tudo e corte as esperas na edição**, com um aviso na tela ("[corte: ~1 min de inferência]"). Não acelere o áudio da fala.
-- Falar em dupla ou revezar: deixa claro que os dois participaram.
+**Como montar:** grave a narração (voiceover) lendo os textos abaixo por cima das imagens. Corte as
+esperas da IA (coloque um aviso "[corte]" na tela). Não precisa aparecer o rosto.
 
 ---
 
-## Bloco 1 — Abertura e objetivo (0:00–1:00)
-- Quem são, disciplina, e o que é o trabalho em 2 frases: "um agente supervisionado que usa um LLM local (Qwen3 4B) para investigar o OWASP Juice Shop; avaliamos onde a IA ajuda e onde falha".
-- Deixar claro o enquadramento: **não** é sobre achar vulnerabilidades, é sobre supervisão e análise crítica.
+## Bloco 1 — Abertura (~0:40) · imagem: o diagrama (`video/arquitetura.svg`)
+> "Somos o Grupo 7, Vinicius e Marcos, da disciplina Tecnologias Hackers. Neste trabalho
+> desenvolvemos um agente supervisionado que usa um modelo de linguagem local, o Qwen3 4B, para
+> investigar o OWASP Juice Shop. O objetivo não é achar o máximo de vulnerabilidades, mas avaliar
+> onde a IA ajuda, onde ela falha, e quando a supervisão humana é necessária. Tudo roda no servidor
+> do kit: o alvo, o modelo e o agente ficam fechados em localhost, e a gente acessa por VPN e SSH."
 
-## Bloco 2 — Arquitetura e laboratório (1:00–2:30)
-- Mostrar o diagrama: tudo roda no servidor do kit (`discorder`); Juice Shop e Ollama só em `127.0.0.1`; o grupo acessa por VPN + SSH.
-- Mostrar, rápido, a prova de **isolamento** (os `curl` que falham de fora; o túnel que funciona) — 1 frase, sem se alongar.
-- Mostrar o **restore** rodando e confirmando o estado inicial.
-- Citar o agente: 3 ferramentas (`login`, `http_request`, `dir_enum`), com a **trava de escopo no código** e o **log** de cada passo. Dizer que há testes automáticos da trava.
+## Bloco 2 — A investigação I2 completa (~4 a 5 min) · imagem: a gravação da I2
+Narre por cima do vídeo, acompanhando o que aparece na tela:
 
-## Bloco 3 — Investigação completa ao vivo: I2 (2:30–7:30)
-Este é o coração do vídeo. Seguir o fluxo real:
-1. **Hipótese** (10s): "o servidor entrega um carrinho pelo id, sem checar o dono — IDOR".
-2. **Rodar o agente** com o objetivo. Mostrar o **turno 1**: a IA propõe `login` sozinha → autorizar. (Destacar: ela entendeu que precisava autenticar.)
-3. **Turno 2**: a IA faz o pulo do IDOR sozinha (pedir um id diferente) → autorizar. (Destacar: raciocínio genuíno da IA.)
-4. **A intervenção**: a IA quis concluir a partir de um carrinho **vazio** → o grupo **rejeita/modifica** e força `/rest/basket/1` → vem o carrinho de outro usuário (`UserId 1`). (Destacar: a supervisão melhorou a evidência.)
-5. **A falha**: mostrar a IA **repetindo** a proposta e o **alerta de repetição** do agente. (Destacar: limitação do modelo; a decisão ficou com o humano.)
-6. **Conclusão**: IDOR confirmado, apontando a evidência no **log**.
+- **Hipótese (ao começar):**
+  > "A nossa hipótese: o servidor entrega um carrinho pelo número do id, sem checar se ele é seu —
+  > a falha chamada IDOR."
 
-## Bloco 4 — Uma falha da IA e como lidamos (7:30–9:00)
-- Mostrar um exemplo concreto (pode ser o da própria I2, ou o da I3): o agente não enxerga o XSS da tela; ou o agente confunde/repete.
-- Explicar como o grupo detectou e o que fez (rejeitou, forçou, confirmou no navegador).
-- Fechar a ideia central: **onde a IA ajudou, onde falhou, onde o humano foi necessário** — com a escala I1 (útil) → I2 (útil com supervisão) → I3 (pouco útil).
+- **Turno do login:**
+  > "Damos só o objetivo ao agente. Repare que ele, sozinho, propõe fazer login primeiro — entendeu
+  > que precisava estar autenticado. A gente autoriza."
 
-## Bloco 5 — Fechamento (9:00–9:45)
-- 1 ou 2 lições: o que o agente de 4B consegue e não consegue; o papel da supervisão.
-- Agradecer e encerrar. **Cronometrar: tem que ficar abaixo de 10 min.**
+- **Turno do primeiro teste (basket):**
+  > "Agora o agente faz o raciocínio central sozinho: 'meu carrinho é o número 6, vou pedir um id
+  > diferente pra ver se acesso o de outro usuário'. Isso é a contribuição boa da IA."
+
+- **A intervenção (o carrinho vazio → forçar o /rest/basket/1):**
+  > "Aqui entra a supervisão. O modelo tentou concluir a vulnerabilidade a partir de um carrinho
+  > vazio — uma conclusão sem evidência. A gente rejeita e força o carrinho número 1. E o resultado:
+  > logados como o usuário 25, recebemos o carrinho do usuário 1. IDOR confirmado, com evidência real
+  > no log."
+
+- **O segundo recurso e o loop:**
+  > "Tentamos levar o agente a um segundo recurso. Mesmo pedindo, ele repete a proposta anterior — o
+  > nosso detector de repetição avisa. Então a gente força o teste nos endereços, e esse endpoint
+  > responde com bloqueio: o IDOR não é uniforme, alguns recursos vazam e outros são protegidos."
+
+- **Conclusão:**
+  > "Concluímos: IDOR confirmado no carrinho, evidência no log; o segundo recurso é protegido; e a IA
+  > precisou de supervisão para a qualidade da evidência e para ampliar o escopo."
+
+## Bloco 3 — Fecho (~0:40) · imagem: o slide de síntese (`video/slides_investigacoes.html`, último slide)
+> "Nas três investigações, a IA foi útil no reconhecimento, útil com supervisão no IDOR, e pouco útil
+> no XSS, onde ela nem enxerga a falha, porque só vê a resposta crua. A lição é que, com um modelo
+> local pequeno, o valor está no fluxo supervisionado: a IA sugere e acelera, mas a condução, a
+> validação e a responsabilidade ficam com a gente. Obrigado."
 
 ---
 
-## Checklist antes de enviar o vídeo
-- [ ] Mostra o lab funcionando e o restore
-- [ ] Mostra UMA investigação completa (I2), da hipótese à conclusão
-- [ ] Destaca decisões do modelo E intervenções do grupo
-- [ ] Mostra pelo menos uma falha concreta da IA e como foi tratada
-- [ ] Esperas de inferência cortadas, com aviso na tela
-- [ ] Duração ≤ 10 min (cronometrado)
-- [ ] Áudio audível; tela legível (fonte do terminal grande o suficiente)
+## Checklist antes de enviar
+- [ ] Aparece o agente rodando (o ciclo propor → decidir → executar)
+- [ ] Uma investigação completa (I2), da hipótese à conclusão
+- [ ] Dá pra ver uma decisão do modelo E uma intervenção do grupo (autorizar / rejeitar / forçar)
+- [ ] Esperas da IA cortadas, com aviso na tela
+- [ ] Duração ≤ 10 min (de preferência 5–7)
+- [ ] Áudio audível, terminal legível
