@@ -150,6 +150,8 @@
   document.addEventListener('click',e=>{
     const d=e.target.closest('.dot'); if(d) go(+d.dataset.k);
   });
+  const h=parseInt(location.hash.slice(1));
+  if(!isNaN(h)) i=Math.max(0,Math.min(slides.length-1,h));
   render();
 </script>
 </body>

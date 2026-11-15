@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fecho — I2</title>
+<style>
+  :root{ --bg:#0f1720; --card:#17212b; --line:#27333f; --ink:#e8eef3; --mut:#9fb0bf; --amber:#f0b429; --green:#56d364; --coral:#f07a52; }
+  html,body{ margin:0; height:100%; }
+  body{ background:var(--bg); color:var(--ink); font-family:"Segoe UI",system-ui,Arial,sans-serif;
+    display:flex; align-items:center; justify-content:center; min-height:100vh; padding:44px; }
+  .wrap{ width:min(900px,92vw); }
+  .tag{ font-size:15px; color:var(--mut); letter-spacing:.5px }
+  .tag b{ color:var(--ink); font-weight:600 }
+  h1{ font-size:30px; font-weight:600; margin:10px 0 4px }
+  .sub{ font-size:17px; color:var(--mut); margin:0 0 24px }
+  .box{ background:var(--card); border:1px solid var(--line); border-radius:14px; padding:22px 26px; }
+  .box .lbl{ font-size:13px; color:var(--mut); text-transform:uppercase; letter-spacing:1px }
+  .box .big{ font-size:26px; font-weight:600; margin:6px 0 2px; color:var(--amber) }
+  .box p{ margin:4px 0 0; font-size:16px; color:var(--ink); line-height:1.5 }
+  .bar{ height:6px; border-radius:3px; margin-top:16px; background:var(--amber); }
+  .ai{ display:flex; gap:20px; margin-top:18px }
+  .ai .col{ flex:1 }
+  .ai h3{ margin:0 0 6px; font-size:13px; letter-spacing:.5px; text-transform:uppercase }
+  .up h3{ color:var(--green) } .down h3{ color:var(--coral) }
+  .ai p{ margin:0; font-size:15px; color:var(--ink); line-height:1.45 }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="tag"><b>Síntese da investigação</b></div>
+  <h1>I2 — Acesso indevido a recursos (IDOR)</h1>
+  <p class="sub">O que a investigação mostrou sobre a contribuição da IA.</p>
+  <div class="box">
+    <div class="lbl">Contribuição da IA</div>
+    <div class="big">Útil, com supervisão</div>
+    <p>Bom raciocínio inicial (propôs o login e o teste de IDOR sozinha); a qualidade da evidência e a
+    ampliação do escopo vieram da supervisão humana.</p>
+    <div class="bar"></div>
+    <div class="ai">
+      <div class="col up"><h3>Onde ajudou</h3><p>Autenticou e fez o pulo lógico do IDOR por conta própria.</p></div>
+      <div class="col down"><h3>Onde falhou</h3><p>Concluiu de um carrinho vazio e não ampliou o escopo nem com orientação.</p></div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

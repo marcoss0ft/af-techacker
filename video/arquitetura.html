@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Arquitetura do laboratório</title>
+<style>
+  :root{ --bg:#0f1720; --ink:#e8eef3; --mut:#9fb0bf; }
+  html,body{ margin:0; height:100%; }
+  body{
+    background:var(--bg); color:var(--ink);
+    font-family:"Segoe UI",system-ui,Arial,sans-serif;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    min-height:100vh; gap:18px; padding:28px;
+  }
+  h1{ font-size:26px; font-weight:600; margin:0; text-align:center; }
+  .sub{ color:var(--mut); font-size:15px; margin:0 0 4px; text-align:center; }
+  .frame{ width:min(920px,92vw); background:#17212b; border:1px solid #27333f; border-radius:16px; padding:26px; }
+  svg{ width:100%; height:auto; display:block; }
+  .legenda{ color:var(--mut); font-size:14px; max-width:720px; text-align:center; line-height:1.5; }
+</style>
+</head>
+<body>
+  <h1>Arquitetura do laboratório</h1>
+  <p class="sub">Grupo 7 · Testes ofensivos com apoio de IA · OWASP Juice Shop</p>
+  <div class="frame">
+    <svg viewBox="0 0 680 400" xmlns="http://www.w3.org/2000/svg" role="img">
+      <title>Arquitetura</title>
+      <desc>O notebook do grupo acessa, por VPN e SSH, o servidor do kit, que contém o Juice Shop, o Ollama com Qwen3 4B e o agente, todos em 127.0.0.1.</desc>
+      <defs><marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="#9fb0bf" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker></defs>
+      <rect x="40" y="150" width="150" height="70" rx="8" fill="#1f2a36" stroke="#3a4a5a" stroke-width="1"/>
+      <text x="115" y="183" text-anchor="middle" font-size="14" font-weight="600" fill="#e8eef3">Notebook do grupo</text>
+      <text x="115" y="202" text-anchor="middle" font-size="12" fill="#9fb0bf">VPN + SSH</text>
+      <line x1="192" y1="185" x2="236" y2="185" stroke="#9fb0bf" stroke-width="1.5" marker-end="url(#arrow)"/>
+      <rect x="240" y="44" width="400" height="312" rx="20" fill="#141d26" stroke="#3a4a5a" stroke-width="1"/>
+      <text x="265" y="77" font-size="14" font-weight="600" fill="#e8eef3">discorder — servidor do kit</text>
+      <text x="265" y="96" font-size="12" fill="#9fb0bf">10.0.80.3 · tudo só em 127.0.0.1 (isolado da rede)</text>
+      <rect x="266" y="116" width="348" height="58" rx="10" fill="#3a2019" stroke="#f07a52" stroke-width="1"/>
+      <text x="440" y="143" text-anchor="middle" font-size="14" font-weight="600" fill="#f5b199">OWASP Juice Shop</text>
+      <text x="440" y="162" text-anchor="middle" font-size="12" fill="#e59277">alvo · porta 3000</text>
+      <rect x="266" y="190" width="348" height="58" rx="10" fill="#211f3a" stroke="#7f77dd" stroke-width="1"/>
+      <text x="440" y="217" text-anchor="middle" font-size="14" font-weight="600" fill="#b9b4f0">Ollama + Qwen3 4B</text>
+      <text x="440" y="236" text-anchor="middle" font-size="12" fill="#9f99e0">LLM local · porta 11434</text>
+      <rect x="266" y="264" width="348" height="70" rx="10" fill="#0f2a24" stroke="#2dd4a7" stroke-width="1"/>
+      <text x="440" y="293" text-anchor="middle" font-size="14" font-weight="600" fill="#7fe6c9">Agente supervisionado (Python)</text>
+      <text x="440" y="315" text-anchor="middle" font-size="12" fill="#5dcaa5">login · http_request · dir_enum</text>
+    </svg>
+  </div>
+  <p class="legenda">O alvo, o modelo e o agente rodam no servidor do kit, acessíveis só em <strong>127.0.0.1</strong>.
+  O grupo acessa por VPN + SSH; nada fica exposto na rede compartilhada.</p>
+</body>
+</html>

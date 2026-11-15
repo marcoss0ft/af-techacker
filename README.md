@@ -102,6 +102,6 @@ Confere ferramentas, Juice Shop, Ollama, modelo instalado e se as portas 3000 e 
 | Juice Shop (tag da imagem) | `bkimminich/juice-shop:v20.3.0` |
 | Ollama | 0.40.14 |
 | Modelo / digest | `qwen3:4b` / `359d7dd4bcda` |
-| Quantização | _a preencher (`ollama show qwen3:4b`)_ |
-| `num_ctx` / `temperature` / `seed` / thinking | _a definir na Fase 2_ |
+| Quantização | Q4_K_M (padrão da tag `qwen3:4b` no Ollama; confirmar com `ollama show qwen3:4b`) |
+| `num_ctx` / `temperature` / `seed` / thinking | 16384 / 0.2 / sem seed fixo / thinking desligado (ver `agent/config.yaml`) |
 | Desempenho medido (CPU, 03/11/2026) | 17 tokens/s de geração, 65 tokens/s de leitura do prompt. Com thinking ligado, uma resposta de uma frase gerou 1265 tokens e levou 1min16s |
